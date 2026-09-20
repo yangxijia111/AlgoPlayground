@@ -6,8 +6,10 @@ import { Sidebar } from './ui/components/Sidebar';
 import AlgorithmPage from './ui/pages/AlgorithmPage';
 import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
+import { useTheme } from './ui/hooks/useTheme';
 
 export default function App() {
+  const { theme, toggle } = useTheme();
   return (
     <HashRouter>
       <div className="app-shell">
@@ -16,6 +18,15 @@ export default function App() {
             <span className="app-brand-mark">▶</span> AlgoPlayground
           </a>
           <span className="app-tagline">交互式算法可视化学习平台</span>
+          <button
+            type="button"
+            className="btn btn-icon theme-toggle"
+            onClick={toggle}
+            aria-label={theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'}
+            title="切换主题"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
         </header>
         <div className="app-body">
           <Sidebar />

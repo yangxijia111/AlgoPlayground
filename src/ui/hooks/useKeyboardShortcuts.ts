@@ -10,6 +10,8 @@ export function useKeyboardShortcuts(engine: PlaybackEngine): void {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      // 焦点在按钮上时空格/回车应触发按钮本身，避免双重动作
+      if (target && target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
       switch (e.key) {
         case ' ':
           e.preventDefault();

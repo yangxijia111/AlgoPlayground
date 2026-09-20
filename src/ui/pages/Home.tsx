@@ -19,6 +19,18 @@ export default function Home() {
       </section>
 
       <div className="home-grid">
+        <section className="card home-card home-card--compare">
+          <h2>比较模式</h2>
+          <ul>
+            <li>
+              <Link to="/compare">
+                排序比较模式
+                <span className="home-card-sub">Compare Sorting</span>
+              </Link>
+            </li>
+          </ul>
+          <p className="home-card-note">同一组数据，最多 3 种排序算法同步播放对比。</p>
+        </section>
         {CATEGORIES.map((cat) => {
           const algos = algorithmsByCategory(cat.id);
           if (algos.length === 0) return null;
