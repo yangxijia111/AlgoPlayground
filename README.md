@@ -56,6 +56,23 @@ npm run build      # 产物构建（含 typecheck）
 - 293 项自动化测试：算法正确性（金标准输入与输出对照）、步骤完整性、播放器行为、输入校验、组件交互
 - 每次提交门禁：`lint / typecheck / test / build` 四项全绿（GitHub Actions 同步执行）
 
+## 项目目录结构
+
+```
+AlgoPlayground/
+├── docs/               开发文档（产品/需求/架构/规格/测试计划/路线图/最终报告）
+├── .github/workflows/  CI 门禁（lint / typecheck / test / build）
+└── src/
+    ├── core/           纯逻辑层：类型、播放引擎、注册表、校验
+    │   └── algorithms/ 8 个分类共 20 个算法（纯 Generator，零 UI 依赖）
+    ├── ui/
+    │   ├── components/ 播放器、教学面板与 9 种帧渲染器
+    │   ├── editors/    各分类输入编辑器（数组/图/背包…）
+    │   ├── pages/      算法页 / 比较模式 / 首页
+    │   └── hooks/      播放绑定、快捷键、主题
+    └── test/           测试环境配置
+```
+
 ## 文档
 
 完整文档在 [docs/](docs/)：PRODUCT · REQUIREMENTS · ARCHITECTURE · ALGORITHM_SPEC · VISUALIZATION_SPEC · STATE_SPEC · TEST_PLAN · ROADMAP · CHANGELOG · FINAL_REPORT。
