@@ -9,7 +9,7 @@ import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
 import { collectSteps } from '../../core/step/step';
 import type { VizStep } from '../../core/step/step';
-import { isArrayFrame, isStructureFrame, isTreeFrame, isGraphFrame } from '../../core/step/frame';
+import { isArrayFrame, isStructureFrame, isTreeFrame, isGraphFrame, isRecursionFrame, isNQueensFrame, isDPFrame } from '../../core/step/frame';
 import { PlayerBar } from '../components/PlayerBar';
 import { TeachingPanel } from '../components/TeachingPanel';
 import { FrameView } from '../components/frames/FrameView';
@@ -17,6 +17,7 @@ import { ArrayStateView } from '../components/frames/ArrayStateView';
 import { StructureStateView } from '../components/frames/StructureStateView';
 import { TreeStateView } from '../components/frames/TreeStateView';
 import { GraphStateView } from '../components/frames/GraphStateView';
+import { RecursionStateView, NQueensStateView, DPStateView } from '../components/frames/P5StateViews';
 import { SortInputEditor } from '../editors/SortInputEditor';
 import { SearchInputEditor } from '../editors/SearchInputEditor';
 import { LinearInputEditor } from '../editors/LinearInputEditor';
@@ -24,6 +25,7 @@ import { LinkedListInputEditor } from '../editors/LinkedListInputEditor';
 import { BSTInputEditor } from '../editors/BSTInputEditor';
 import { TraversalInputEditor } from '../editors/TraversalInputEditor';
 import { GraphInputEditor } from '../editors/GraphInputEditor';
+import { RecursionInputEditor, NQueensInputEditor, DPInputEditor } from '../editors/RecursionDPEditors';
 import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
@@ -60,6 +62,12 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
       );
     case 'graph':
       return <GraphInputEditor value={input} onCommit={onCommit} />;
+    case 'recursion':
+      return <RecursionInputEditor value={input} onCommit={onCommit} />;
+    case 'nqueens':
+      return <NQueensInputEditor value={input} onCommit={onCommit} />;
+    case 'dp':
+      return <DPInputEditor value={input} onCommit={onCommit} />;
     default:
       return <p className="editor-placeholder">该类别的输入编辑器将在后续阶段提供</p>;
   }
@@ -94,6 +102,12 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     <TreeStateView frame={step.frame} />
   ) : step && isGraphFrame(step.frame) ? (
     <GraphStateView frame={step.frame} />
+  ) : step && isRecursionFrame(step.frame) ? (
+    <RecursionStateView frame={step.frame} />
+  ) : step && isNQueensFrame(step.frame) ? (
+    <NQueensStateView frame={step.frame} />
+  ) : step && isDPFrame(step.frame) ? (
+    <DPStateView frame={step.frame} />
   ) : undefined;
 
   return (

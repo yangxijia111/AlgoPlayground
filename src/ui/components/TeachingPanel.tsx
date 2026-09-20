@@ -16,6 +16,7 @@ export const COUNTER_LABELS: Record<string, string> = {
   solutions: '已找到解',
   inserts: '插入次数',
   removes: '删除次数',
+  fills: '填充格数',
 };
 
 export function TeachingPanel({

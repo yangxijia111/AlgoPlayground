@@ -7,6 +7,9 @@ import { ArrayBars } from './ArrayBars';
 import { StructureView } from './StructureView';
 import { TreeView } from './TreeView';
 import { GraphView } from './GraphView';
+import { RecursionView } from './RecursionView';
+import { NQueensBoard } from './NQueensBoard';
+import { DPTable } from './DPTable';
 
 export function FrameView({ frame }: { frame: Frame }) {
   switch (frame.kind) {
@@ -18,7 +21,13 @@ export function FrameView({ frame }: { frame: Frame }) {
       return <TreeView frame={frame} />;
     case 'graph':
       return <GraphView frame={frame} />;
+    case 'recursion':
+      return <RecursionView frame={frame} />;
+    case 'nqueens':
+      return <NQueensBoard frame={frame} />;
+    case 'dp':
+      return <DPTable frame={frame} />;
     default:
-      return <div className="viz-empty">该类型渲染器将在后续阶段提供（{frame.kind}）</div>;
+      return <div className="viz-empty">暂不支持的可视化类型</div>;
   }
 }
