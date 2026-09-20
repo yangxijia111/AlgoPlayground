@@ -23,8 +23,3 @@ export function collectSteps(gen: Generator<VizStep, void, void>): VizStep[] {
   }
   return steps;
 }
-
-/** 步骤计数器快捷构造 */
-export function counters(entries: Record<string, number>): Record<string, number> {
-  return { ...entries };
-}

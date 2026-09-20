@@ -2,7 +2,7 @@
  * 输入校验工具测试（TEST_PLAN T4 通用部分）。
  */
 import { describe, expect, it } from 'vitest';
-import { checkInt, parseIntArray, isSortedAsc } from './validation';
+import { parseIntArray, isSortedAsc } from './validation';
 
 describe('parseIntArray', () => {
   const opts = { minLen: 1, maxLen: 60, minVal: -99, maxVal: 999 };
@@ -40,18 +40,6 @@ describe('parseIntArray', () => {
     const r = parseIntArray('1, 2, 1000', opts);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain('第 3 项');
-  });
-});
-
-describe('checkInt', () => {
-  it('范围内整数通过', () => {
-    expect(checkInt(5, 'n', 1, 10)).toBeNull();
-  });
-  it('非整数报错', () => {
-    expect(checkInt(1.5, 'n', 1, 10)).toContain('整数');
-  });
-  it('越界报错', () => {
-    expect(checkInt(11, 'n', 1, 10)).toContain('1–10');
   });
 });
 

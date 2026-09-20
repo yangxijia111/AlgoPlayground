@@ -67,12 +67,12 @@ engine: PlaybackEngine(stepCount = max(runs.steps.length))
 ## 5. 图编辑器状态（GraphPage 本地 state）
 
 ```ts
-graph: GraphModel                    // 节点/边/权重
+graph: GraphModel                    // 节点/边/权重（编辑器本地模型）
 startId/endId: string|null           // 起点/终点
-mode: 'select'|'addNode'|'addEdge'|'delete'
+mode: 'move'|'addNode'|'addEdge'|'delete'
 pendingEdgeFrom: string|null         // addEdge 模式下第一个已点节点
-livePositions: Map<id,{x,y}>|null    // 拖拽覆盖表（运行后清空）
 selectedEdgeId: string|null          // 用于改权重/删除边
+// 提交：点击"运行算法"→ onCommit({graph, start, end})，算法重新预计算
 ```
 
 编辑约束（校验）：节点 ≤ 12；边 ≤ 24；无自环/重复边（无向图 (a,b) 与 (b,a) 视为重复）；权重整数 1–99；起点必选才能运行；删除节点级联删除关联边。

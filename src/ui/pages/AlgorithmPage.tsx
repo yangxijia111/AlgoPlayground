@@ -43,7 +43,15 @@ export default function AlgorithmPage() {
   return <AlgorithmPageInner key={entry.meta.id} entry={entry} />;
 }
 
-function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i: AlgorithmInput) => void }) {
+function InputEditor({
+  input,
+  entry,
+  onCommit,
+}: {
+  input: AlgorithmInput;
+  entry: AlgorithmEntry;
+  onCommit: (i: AlgorithmInput) => void;
+}) {
   switch (input.type) {
     case 'sort':
       return <SortInputEditor value={input} onCommit={onCommit} />;
@@ -54,8 +62,8 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
     case 'linkedlist':
       return <LinkedListInputEditor value={input} onCommit={onCommit} />;
     case 'bst':
-      // 两个树条目：操作条目用 BST 编辑器；遍历条目（默认操作为 traverse）用遍历编辑器
-      return input.operation.op === 'traverse' ? (
+      // 按条目区分（而非 operation）：遍历页"重建"提交 build 后仍应显示遍历编辑器
+      return entry.meta.id === 'tree-traversal' ? (
         <TraversalInputEditor value={input} onCommit={onCommit} />
       ) : (
         <BSTInputEditor value={input} onCommit={onCommit} />
@@ -74,6 +82,7 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
 }
 
 function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
+  const [input, setInput] = useState<AlgorithmInput>(entry.defaultInput);
   const [steps, setSteps] = useState<VizStep[]>(() => collectSteps(entry.run(entry.defaultInput)));
   const [error, setError] = useState<string | null>(null);
 
@@ -85,6 +94,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
         return;
       }
       setError(null);
+      setInput(next);
       setSteps(collectSteps(entry.run(next)));
     },
     [entry],
@@ -118,7 +128,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
             <h1 className="card-title">{entry.meta.name}</h1>
             <span className="card-sub">{entry.meta.enName}</span>
           </div>
-          <InputEditor input={entry.defaultInput} onCommit={commit} />
+          <InputEditor input={input} entry={entry} onCommit={commit} />
           {error ? (
             <p className="form-error form-error--page" role="alert">
               {error}

@@ -59,10 +59,10 @@
 ## P8 全项目审计与 v1.0 发布
 范围：全库审查（算法正确性、边界、状态管理、动画状态、性能、内存泄漏、React warning、TS、重复/无用代码、测试、可访问性、响应式、文档），发现问题即修复并复跑门禁；产出 FINAL_REPORT.md（全部算法、架构、测试数量与结果、build 结果、目录结构、已知限制、commit hash、GitHub 地址、v1.1 Roadmap）；创建 GitHub 仓库并推送；打 tag `v1.0.0`。
 验收：
-- [ ] 四项门禁最终全绿
-- [ ] FINAL_REPORT.md 完整
-- [ ] GitHub 仓库存在且含全部提交、tag 已推送
-- [ ] CHANGELOG.md 与实际交付一致
+- [x] 四项门禁最终全绿
+- [x] FINAL_REPORT.md 完整
+- [x] GitHub 仓库存在且含全部提交、tag 已推送
+- [x] CHANGELOG.md 与实际交付一致
 
 ## 状态
 
@@ -76,4 +76,4 @@
 | P5 | ✅ 完成 |
 | P6 | ✅ 完成 |
 | P7 | ✅ 完成 |
-| P8 | 进行中 |
+| P8 | ✅ 完成（v1.0.0 已发布） |

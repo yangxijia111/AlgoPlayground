@@ -34,13 +34,6 @@ export function parseIntArray(text: string, opts: IntArrayOptions): { ok: true; 
   return { ok: true, values };
 }
 
-/** 校验单个整数是否在范围内 */
-export function checkInt(value: number, name: string, min: number, max: number): string | null {
-  if (!Number.isInteger(value)) return `${name}必须是整数`;
-  if (value < min || value > max) return `${name}必须在 ${min}–${max} 之间`;
-  return null;
-}
-
 /** 数组是否按升序排列（允许重复） */
 export function isSortedAsc(arr: readonly number[]): boolean {
   for (let i = 1; i < arr.length; i++) {

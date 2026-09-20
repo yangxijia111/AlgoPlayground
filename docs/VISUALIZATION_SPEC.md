@@ -50,7 +50,7 @@
 - SVG：节点圆形（内显 id），distance 徽标显示在节点右上（null 显示 ∞），predecessor 以"← B"形式显示在节点下。
 - 边：无向直线/有向箭头；权重标在边中点（小圆底）；state=active 正在松弛/考察，success 属于最短路/树边，muted 未涉及。
 - current 节点加光圈；frontier 面板（队列/栈/集合）显示在视图上方，frontier 内元素同步 special。
-- 节点支持指针拖拽（拖拽坐标来自 livePositions 覆盖表，见 ARCHITECTURE §关键机制 2）。
+- 动画视图为只读渲染；节点拖拽在输入编辑器画布中进行，点击"运行算法"后新坐标生效（见 ARCHITECTURE §关键机制 2）。
 
 ### RecursionView（recursion）
 - 左侧：调用栈纵向列表，栈顶在上；active=高亮边框，returned=灰化并显示返回值。
