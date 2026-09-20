@@ -538,6 +538,49 @@ input[type='range'] {
 }
 
 /* --------------------------------------------------------------------------
+   树
+   -------------------------------------------------------------------------- */
+
+.tree-view {
+  padding: 4px;
+}
+
+.tree-svg {
+  width: 100%;
+  height: auto;
+}
+
+.tree-node-text {
+  fill: var(--color-text);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: Consolas, Menlo, monospace;
+  pointer-events: none;
+}
+
+.viz-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke 0.15s ease;
+}
+
+.viz-edge--active {
+  stroke: var(--state-active);
+}
+
+.viz-edge--success {
+  stroke: var(--state-success);
+}
+
+.tree-output {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
    播放器
    -------------------------------------------------------------------------- */
 

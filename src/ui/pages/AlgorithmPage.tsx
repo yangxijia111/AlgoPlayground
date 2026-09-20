@@ -9,16 +9,19 @@ import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
 import { collectSteps } from '../../core/step/step';
 import type { VizStep } from '../../core/step/step';
-import { isArrayFrame, isStructureFrame } from '../../core/step/frame';
+import { isArrayFrame, isStructureFrame, isTreeFrame } from '../../core/step/frame';
 import { PlayerBar } from '../components/PlayerBar';
 import { TeachingPanel } from '../components/TeachingPanel';
 import { FrameView } from '../components/frames/FrameView';
 import { ArrayStateView } from '../components/frames/ArrayStateView';
 import { StructureStateView } from '../components/frames/StructureStateView';
+import { TreeStateView } from '../components/frames/TreeStateView';
 import { SortInputEditor } from '../editors/SortInputEditor';
 import { SearchInputEditor } from '../editors/SearchInputEditor';
 import { LinearInputEditor } from '../editors/LinearInputEditor';
 import { LinkedListInputEditor } from '../editors/LinkedListInputEditor';
+import { BSTInputEditor } from '../editors/BSTInputEditor';
+import { TraversalInputEditor } from '../editors/TraversalInputEditor';
 import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
@@ -46,6 +49,13 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
       return <LinearInputEditor value={input} onCommit={onCommit} />;
     case 'linkedlist':
       return <LinkedListInputEditor value={input} onCommit={onCommit} />;
+    case 'bst':
+      // 两个树条目：操作条目用 BST 编辑器；遍历条目（默认操作为 traverse）用遍历编辑器
+      return input.operation.op === 'traverse' ? (
+        <TraversalInputEditor value={input} onCommit={onCommit} />
+      ) : (
+        <BSTInputEditor value={input} onCommit={onCommit} />
+      );
     default:
       return <p className="editor-placeholder">该类别的输入编辑器将在后续阶段提供</p>;
   }
@@ -76,6 +86,8 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     <ArrayStateView frame={step.frame} />
   ) : step && isStructureFrame(step.frame) ? (
     <StructureStateView frame={step.frame} />
+  ) : step && isTreeFrame(step.frame) ? (
+    <TreeStateView frame={step.frame} />
   ) : undefined;
 
   return (
