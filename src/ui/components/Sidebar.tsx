@@ -10,6 +10,9 @@ export function Sidebar() {
       <NavLink to="/" className={({ isActive }) => `sidebar-home${isActive ? ' is-active' : ''}`}>
         首页
       </NavLink>
+      <NavLink to="/compare" className={({ isActive }) => `sidebar-link sidebar-compare${isActive ? ' is-active' : ''}`}>
+        ⚔ 排序比较模式
+      </NavLink>
       {CATEGORIES.map((cat) => {
         const algos = algorithmsByCategory(cat.id);
         if (algos.length === 0) return null;

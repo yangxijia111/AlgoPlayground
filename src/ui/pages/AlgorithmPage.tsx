@@ -90,7 +90,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     [entry],
   );
 
-  const { engine, snapshot } = usePlayback(steps);
+  const { engine, snapshot } = usePlayback(steps.length);
   useKeyboardShortcuts(engine);
 
   const step = steps[snapshot.index];

@@ -4,6 +4,7 @@
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Sidebar } from './ui/components/Sidebar';
 import AlgorithmPage from './ui/pages/AlgorithmPage';
+import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <main className="app-main" id="main">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/compare" element={<ComparePage />} />
               <Route path="/:category/:algoId" element={<AlgorithmPage />} />
               <Route
                 path="*"

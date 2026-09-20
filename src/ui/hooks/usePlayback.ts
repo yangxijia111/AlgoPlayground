@@ -1,14 +1,13 @@
 /**
  * 播放器 React 绑定：rAF 驱动引擎 + useSyncExternalStore 订阅快照。
- * 步骤数组变化（新运行）时重建引擎，从第 0 步开始。
+ * stepCount 变化（新运行）时重建引擎，从第 0 步开始。
  */
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { PlaybackEngine } from '../../core/player/engine';
 import type { PlayerSnapshot } from '../../core/player/engine';
-import type { VizStep } from '../../core/step/step';
 
-export function usePlayback(steps: VizStep[]): { engine: PlaybackEngine; snapshot: PlayerSnapshot } {
-  const engine = useMemo(() => new PlaybackEngine(steps.length), [steps]);
+export function usePlayback(stepCount: number): { engine: PlaybackEngine; snapshot: PlayerSnapshot } {
+  const engine = useMemo(() => new PlaybackEngine(stepCount), [stepCount]);
   const snapshot = useSyncExternalStore(engine.subscribe, engine.getSnapshot);
 
   useEffect(() => {
