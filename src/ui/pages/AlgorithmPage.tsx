@@ -9,19 +9,21 @@ import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
 import { collectSteps } from '../../core/step/step';
 import type { VizStep } from '../../core/step/step';
-import { isArrayFrame, isStructureFrame, isTreeFrame } from '../../core/step/frame';
+import { isArrayFrame, isStructureFrame, isTreeFrame, isGraphFrame } from '../../core/step/frame';
 import { PlayerBar } from '../components/PlayerBar';
 import { TeachingPanel } from '../components/TeachingPanel';
 import { FrameView } from '../components/frames/FrameView';
 import { ArrayStateView } from '../components/frames/ArrayStateView';
 import { StructureStateView } from '../components/frames/StructureStateView';
 import { TreeStateView } from '../components/frames/TreeStateView';
+import { GraphStateView } from '../components/frames/GraphStateView';
 import { SortInputEditor } from '../editors/SortInputEditor';
 import { SearchInputEditor } from '../editors/SearchInputEditor';
 import { LinearInputEditor } from '../editors/LinearInputEditor';
 import { LinkedListInputEditor } from '../editors/LinkedListInputEditor';
 import { BSTInputEditor } from '../editors/BSTInputEditor';
 import { TraversalInputEditor } from '../editors/TraversalInputEditor';
+import { GraphInputEditor } from '../editors/GraphInputEditor';
 import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
@@ -56,6 +58,8 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
       ) : (
         <BSTInputEditor value={input} onCommit={onCommit} />
       );
+    case 'graph':
+      return <GraphInputEditor value={input} onCommit={onCommit} />;
     default:
       return <p className="editor-placeholder">该类别的输入编辑器将在后续阶段提供</p>;
   }
@@ -88,6 +92,8 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     <StructureStateView frame={step.frame} />
   ) : step && isTreeFrame(step.frame) ? (
     <TreeStateView frame={step.frame} />
+  ) : step && isGraphFrame(step.frame) ? (
+    <GraphStateView frame={step.frame} />
   ) : undefined;
 
   return (

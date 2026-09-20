@@ -6,6 +6,7 @@ import type { Frame } from '../../../core/step/frame';
 import { ArrayBars } from './ArrayBars';
 import { StructureView } from './StructureView';
 import { TreeView } from './TreeView';
+import { GraphView } from './GraphView';
 
 export function FrameView({ frame }: { frame: Frame }) {
   switch (frame.kind) {
@@ -15,6 +16,8 @@ export function FrameView({ frame }: { frame: Frame }) {
       return <StructureView frame={frame} />;
     case 'tree':
       return <TreeView frame={frame} />;
+    case 'graph':
+      return <GraphView frame={frame} />;
     default:
       return <div className="viz-empty">该类型渲染器将在后续阶段提供（{frame.kind}）</div>;
   }

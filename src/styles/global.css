@@ -581,6 +581,109 @@ input[type='range'] {
 }
 
 /* --------------------------------------------------------------------------
+   图
+   -------------------------------------------------------------------------- */
+
+.graph-view {
+  padding: 4px;
+}
+
+.graph-svg {
+  width: 100%;
+  height: auto;
+}
+
+.graph-frontier {
+  font-family: Consolas, Menlo, monospace;
+  font-size: 13px;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: 8px;
+  padding: 5px 12px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.graph-weight-bg {
+  fill: var(--color-bg-panel);
+  stroke: var(--color-border);
+}
+
+.graph-weight-text {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-family: Consolas, Menlo, monospace;
+}
+
+.graph-dist-bg {
+  fill: var(--color-bg-raised);
+  stroke: var(--color-border);
+}
+
+.graph-dist-text {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: Consolas, Menlo, monospace;
+}
+
+.graph-pred-text {
+  fill: var(--color-text-dim);
+  font-size: 12px;
+  font-family: Consolas, Menlo, monospace;
+}
+
+.graph-halo {
+  fill: none;
+  stroke: var(--state-active);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.graph-start-ring {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+}
+
+.graph-end-ring {
+  fill: none;
+  stroke: var(--state-special);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+}
+
+.graph-flag-text {
+  fill: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.graph-editor-canvas {
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  touch-action: none;
+}
+
+.graph-state {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.field--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-width: auto;
+}
+
+.editor-hint {
+  color: var(--color-text-dim);
+  font-size: 12px;
+  margin: 2px 0;
+}
+
+/* --------------------------------------------------------------------------
    播放器
    -------------------------------------------------------------------------- */
 

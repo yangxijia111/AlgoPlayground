@@ -6,5 +6,6 @@ import sorting from './sorting';
 import searching from './searching';
 import linear from './linear';
 import tree from './tree';
+import graph from './graph';
 
-export const allEntries: AlgorithmEntry[] = [...sorting, ...searching, ...linear, ...tree];
+export const allEntries: AlgorithmEntry[] = [...sorting, ...searching, ...linear, ...tree, ...graph];
