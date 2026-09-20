@@ -12,9 +12,9 @@
 ## P1 排序模块
 范围：6 种排序 Generator + 数据生成器（随机/几乎有序/逆序/重复值，带种子）；ArrayBars 渲染器；AlgorithmPage 三栏骨架；TeachingPanel（伪代码高亮/复杂度/稳定性/步骤解释）；PlayerBar + 时间轴 + 快捷键；数组输入编辑器（自定义/生成/大小）。
 验收：
-- [ ] TEST_PLAN T1.1 / T2（排序部分）/ T3 / T5(PlayerBar、ArrayBars) 通过
-- [ ] 页面显示比较/交换计数与步数；pivot、merge 范围、已排序区域可见
-- [ ] 回退/拖动/变速不影响结果
+- [x] TEST_PLAN T1.1 / T2（排序部分）/ T3 / T5(PlayerBar、ArrayBars) 通过
+- [x] 页面显示比较/交换计数与步数；pivot、merge 范围、已排序区域可见
+- [x] 回退/拖动/变速不影响结果
 
 ## P2 搜索与线性结构
 范围：线性/二分搜索；栈、队列、链表及其 StructureView；对应输入编辑器与校验。
@@ -69,5 +69,6 @@
 | Phase | 状态 |
 | --- | --- |
 | P0 | ✅ 完成 |
-| P1–P7 | 见 git 提交历史（每 Phase 至少一 commit） |
+| P1 | ✅ 完成 |
+| P2–P7 | 见 git 提交历史（每 Phase 至少一 commit） |
 | P8 | 进行中 |
