@@ -1,0 +1,48 @@
+/* ==========================================================================
+   AlgoPlayground 全局样式
+   主题：CSS 变量双主题（dark 默认 / light 可切换），渲染器只消费语义变量。
+   ========================================================================== */
+
+:root {
+  /* 布局尺寸 */
+  --sidebar-w: 220px;
+  --panel-w: 340px;
+
+  /* 语义状态色（dark 默认） */
+  --color-bg: #0f1420;
+  --color-bg-raised: #171e2e;
+  --color-bg-panel: #1a2233;
+  --color-border: #2a3450;
+  --color-text: #e6eaf2;
+  --color-text-dim: #9aa5bd;
+  --color-accent: #4f8cff;
+
+  --state-default: #5a6b8f;
+  --state-active: #f2c744;
+  --state-danger: #ef5b5b;
+  --state-success: #3ecf8e;
+  --state-special: #b57bee;
+  --state-muted: #2c3654;
+
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --color-bg: #f5f7fb;
+  --color-bg-raised: #ffffff;
+  --color-bg-panel: #ffffff;
+  --color-border: #d7deeb;
+  --color-text: #1c2433;
+  --color-text-dim: #5f6b81;
+  --color-accent: #2f6fed;
+
+  --state-default: #8fa0bf;
+  --state-active: #d9a400;
+  --state-danger: #d64545;
+  --state-success: #1fa463;
+  --state-special: #8a4fd3;
+  --state-muted: #dfe5f0;
+
+  color-scheme: light;
+}
