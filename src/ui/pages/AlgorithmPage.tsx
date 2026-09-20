@@ -9,12 +9,16 @@ import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
 import { collectSteps } from '../../core/step/step';
 import type { VizStep } from '../../core/step/step';
-import { isArrayFrame } from '../../core/step/frame';
+import { isArrayFrame, isStructureFrame } from '../../core/step/frame';
 import { PlayerBar } from '../components/PlayerBar';
 import { TeachingPanel } from '../components/TeachingPanel';
 import { FrameView } from '../components/frames/FrameView';
 import { ArrayStateView } from '../components/frames/ArrayStateView';
+import { StructureStateView } from '../components/frames/StructureStateView';
 import { SortInputEditor } from '../editors/SortInputEditor';
+import { SearchInputEditor } from '../editors/SearchInputEditor';
+import { LinearInputEditor } from '../editors/LinearInputEditor';
+import { LinkedListInputEditor } from '../editors/LinkedListInputEditor';
 import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
@@ -36,6 +40,12 @@ function InputEditor({ input, onCommit }: { input: AlgorithmInput; onCommit: (i:
   switch (input.type) {
     case 'sort':
       return <SortInputEditor value={input} onCommit={onCommit} />;
+    case 'search':
+      return <SearchInputEditor value={input} onCommit={onCommit} />;
+    case 'linear':
+      return <LinearInputEditor value={input} onCommit={onCommit} />;
+    case 'linkedlist':
+      return <LinkedListInputEditor value={input} onCommit={onCommit} />;
     default:
       return <p className="editor-placeholder">该类别的输入编辑器将在后续阶段提供</p>;
   }
@@ -62,7 +72,11 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   useKeyboardShortcuts(engine);
 
   const step = steps[snapshot.index];
-  const stateSlot = step && isArrayFrame(step.frame) ? <ArrayStateView frame={step.frame} /> : undefined;
+  const stateSlot = step && isArrayFrame(step.frame) ? (
+    <ArrayStateView frame={step.frame} />
+  ) : step && isStructureFrame(step.frame) ? (
+    <StructureStateView frame={step.frame} />
+  ) : undefined;
 
   return (
     <div className="algo-page">

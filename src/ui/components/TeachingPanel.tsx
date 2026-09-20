@@ -14,6 +14,8 @@ export const COUNTER_LABELS: Record<string, string> = {
   recursions: '递归调用',
   backtracks: '回退次数',
   solutions: '已找到解',
+  inserts: '插入次数',
+  removes: '删除次数',
 };
 
 export function TeachingPanel({

@@ -3,5 +3,7 @@
  */
 import type { AlgorithmEntry } from '../registry';
 import sorting from './sorting';
+import searching from './searching';
+import linear from './linear';
 
-export const allEntries: AlgorithmEntry[] = [...sorting];
+export const allEntries: AlgorithmEntry[] = [...sorting, ...searching, ...linear];

@@ -4,11 +4,14 @@
  */
 import type { Frame } from '../../../core/step/frame';
 import { ArrayBars } from './ArrayBars';
+import { StructureView } from './StructureView';
 
 export function FrameView({ frame }: { frame: Frame }) {
   switch (frame.kind) {
     case 'array':
       return <ArrayBars frame={frame} />;
+    case 'structure':
+      return <StructureView frame={frame} />;
     default:
       return <div className="viz-empty">该类型渲染器将在后续阶段提供（{frame.kind}）</div>;
   }

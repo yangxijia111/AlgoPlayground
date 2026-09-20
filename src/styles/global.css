@@ -432,6 +432,112 @@ input[type='range'] {
 }
 
 /* --------------------------------------------------------------------------
+   线性结构（栈/队列/链表）
+   -------------------------------------------------------------------------- */
+
+.structure-view {
+  padding: 8px 4px;
+}
+
+.structure-caption {
+  color: var(--color-text-dim);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.stack-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.stack-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.stack-base {
+  color: var(--color-text-dim);
+  font-size: 12px;
+  border-top: 2px solid var(--color-border);
+  padding-top: 4px;
+  width: 140px;
+  text-align: center;
+}
+
+.h-boxes {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+
+.h-boxes--list {
+  align-items: flex-start;
+}
+
+.struct-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 56px;
+}
+
+.struct-box {
+  min-width: 56px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: Consolas, Menlo, monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0e1220;
+}
+
+[data-theme='light'] .struct-box {
+  color: #fff;
+}
+
+.struct-ptr-row {
+  display: flex;
+  gap: 4px;
+}
+
+.struct-ptr {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: 4px;
+  padding: 0 5px;
+  font-family: Consolas, Menlo, monospace;
+}
+
+.struct-sub {
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+
+.struct-arrow {
+  align-self: flex-start;
+  margin-top: 14px;
+  color: var(--color-text-dim);
+  font-size: 18px;
+}
+
+.struct-null {
+  margin-top: 12px;
+  color: var(--color-text-dim);
+  font-family: Consolas, Menlo, monospace;
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
    播放器
    -------------------------------------------------------------------------- */
 
