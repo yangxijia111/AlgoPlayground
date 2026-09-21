@@ -1761,3 +1761,115 @@ input[type='range'] {
     width: 220px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   P10-3 Predict Next Step
+   -------------------------------------------------------------------------- */
+
+.predict-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.predict-toggle.is-on {
+  border-color: var(--state-special);
+  color: var(--state-special);
+}
+
+.predict-hint {
+  color: var(--color-text-dim);
+  font-size: 0.85rem;
+}
+
+.predict-card {
+  padding: 14px 16px;
+  border-color: var(--state-special);
+}
+
+.predict-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.predict-head h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.predict-session {
+  color: var(--color-text-dim);
+  font-size: 0.85rem;
+}
+
+.predict-prompt {
+  margin: 10px 0;
+  font-weight: 600;
+}
+
+.predict-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.predict-option {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-raised);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.predict-option:hover:not(:disabled),
+.predict-option:focus-visible {
+  border-color: var(--color-accent);
+}
+
+.predict-option.is-right {
+  border-color: var(--state-success);
+  color: var(--state-success);
+  font-weight: 700;
+}
+
+.predict-option.is-wrong {
+  border-color: var(--state-danger);
+  color: var(--state-danger);
+}
+
+.predict-option:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.predict-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.predict-verdict {
+  margin: 0;
+  font-weight: 700;
+}
+
+.predict-verdict.is-correct {
+  color: var(--state-success);
+}
+
+.predict-verdict.is-wrong {
+  color: var(--state-danger);
+}
+
+.predict-explanation {
+  margin: 0;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+}

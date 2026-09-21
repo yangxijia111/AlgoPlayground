@@ -3,7 +3,7 @@
  * 中栏 = 输入编辑器 + 可视化 + 播放器；右栏 = 教学面板。
  * 校验失败时保留上一次成功步骤并显示错误（STATE_SPEC §6）。
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
@@ -31,7 +31,9 @@ import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useLearningProfile } from '../hooks/useLearningProfile';
 import { explainStepBeginner, getBeginnerNote } from '../../core/learning/beginner';
-import { useMemo } from 'react';
+import { generatePredictQuestion } from '../../core/predict/engine';
+import type { PredictQuestion } from '../../core/predict/engine';
+import { PredictCard } from '../components/PredictCard';
 
 export default function AlgorithmPage() {
   const { algoId } = useParams();
@@ -130,6 +132,48 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     return { detail: step ? explainStepBeginner(step, prev ?? null) : null, note: getBeginnerNote(entry.meta.id) };
   }, [profile.settings.beginnerMode, steps, snapshot.index, entry.meta.id]);
 
+  // Predict Next Step：播放推进到出题点自动暂停出题；也可手动「考考我」
+  const [predictMode, setPredictMode] = useState(false);
+  const [predictSession, setPredictSession] = useState({ total: 0, correct: 0 });
+  const [predict, setPredict] = useState<{ question: PredictQuestion; stepIndex: number } | null>(null);
+
+  useEffect(() => {
+    if (!predictMode || predict !== null || !snapshot.playing) return;
+    if (snapshot.index > 0 && snapshot.index % 4 === 3) {
+      const q = generatePredictQuestion(steps, snapshot.index);
+      if (q) {
+        engine.pause();
+        setPredict({ question: q, stepIndex: snapshot.index });
+      }
+    }
+  }, [predictMode, predict, snapshot.playing, snapshot.index, steps, engine]);
+
+  const askNow = useCallback(() => {
+    const q = generatePredictQuestion(steps, snapshot.index);
+    if (q) {
+      engine.pause();
+      setPredict({ question: q, stepIndex: snapshot.index });
+    }
+  }, [steps, snapshot.index, engine]);
+
+  const answerPredict = useCallback(
+    (selected: number) => {
+      if (predict === null) return;
+      const correct = selected === predict.question.answerIndex;
+      store.recordPredictAttempt(entry.meta.id, {
+        stepIndex: predict.stepIndex,
+        stepType: predict.question.stepType,
+        correct,
+      });
+      setPredictSession((s) => ({ total: s.total + 1, correct: s.correct + (correct ? 1 : 0) }));
+    },
+    [predict, store, entry.meta.id],
+  );
+
+  const proceedPredict = useCallback(() => {
+    setPredict(null);
+  }, []);
+
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
     <ArrayStateView frame={step.frame} />
@@ -168,6 +212,39 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
         </section>
 
         <PlayerBar snapshot={snapshot} engine={engine} />
+
+        <div className="predict-bar" aria-label="预测模式控制">
+          <button
+            type="button"
+            className={`btn predict-toggle${predictMode ? ' is-on' : ''}`}
+            aria-pressed={predictMode}
+            onClick={() => {
+              setPredictMode((v) => !v);
+              setPredict(null);
+            }}
+          >
+            🤔 预测模式
+          </button>
+          <button type="button" className="btn" onClick={askNow} disabled={!predictMode || predict !== null}>
+            考考我
+          </button>
+          {predictMode ? (
+            <span className="predict-hint">开启后，播放每推进几步会暂停出题：猜一猜算法的下一步。</span>
+          ) : null}
+        </div>
+
+        {predictMode && predict !== null ? (
+          <PredictCard
+            active={predict}
+            session={predictSession}
+            onAnswer={answerPredict}
+            onProceed={proceedPredict}
+            onClose={() => {
+              setPredictMode(false);
+              setPredict(null);
+            }}
+          />
+        ) : null}
       </div>
 
       <aside className="algo-right" aria-label="教学说明">

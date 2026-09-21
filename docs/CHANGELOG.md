@@ -108,3 +108,10 @@
 - 顶栏新增「🎓 新手」全局切换（Beginner/Standard，存入 settings 跨页面保持）；TeachingPanel「当前步骤」卡片双模式：Standard 与 v1.0.1 完全一致，Beginner 显示逐步详解 + 要点标签。
 - 新增术语表 `src/core/learning/glossary.ts`（25 个术语，含任务要求的全部 22 项）；`/glossary` 术语表页（卡片索引 + 相关算法跳转）；概念课文本支持 `[[term:id]]` 标记，渲染为可点击术语引用（TermTip 弹窗，Esc/外点关闭，键盘可操作，不离开当前页面）。
 - 新增 34 项测试（引擎推导/详解内容/确定性/术语数据完整性/UI 弹窗/全局切换集成）+ 3 项 E2E；累计 470 项单测 + 41 项 E2E 全绿。
+
+### P10-3 — Predict Next Step ✅
+- 新增出题引擎 `src/core/predict/engine.ts`：基于 cur/next 两步 frame diff 确定性出题（九种题型：下一比较对/下一交换/二分 mid/下一访问节点/松弛距离/入栈出栈/入队出队/BST 下一节点/DP 下一格/下一递归调用）；干扰项从当前帧候选值确定性构造（无 AI、无随机、可重放）；候选不足或步骤不适合时返回 null 不打扰。
+- 一致性由结构保证：正确答案永远取自真实 steps[index+1]；一致性测试遍历代表算法全程断言 options[answerIndex] 与真实下一帧字段相等。
+- 算法页新增「🤔 预测模式」：播放每推进 4 步自动暂停出题（可关闭），或手动「考考我」；答题流程 选择 → 提交 → 对/错反馈 → 真实下一步解释 → 继续动画。
+- 评分入库：attempts（algorithmId/stepIndex/stepType/correct/时间）计入掌握度；会话内正确率实时显示。
+- 新增 16 项单测 + 2 项 E2E；累计 486 项单测 + 43 项 E2E 全绿。

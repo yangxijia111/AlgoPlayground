@@ -123,6 +123,16 @@ function explainArray(cur: VizStep, kind: StepKind): string | null {
     case 'compare': {
       const [i, j] = f.comparing;
       if (i === undefined) return null;
+      if (f.pointers.mid !== undefined) {
+        const mid = f.pointers.mid;
+        const lo = f.pointers.lo;
+        const hi = f.pointers.hi;
+        return [
+          `当前搜索区间是 [${lo}..${hi}]，中点 mid = ⌊(${lo}+${hi})/2⌋ = ${mid}。`,
+          `正在拿中间元素 ${at(mid)} 与目标值 ${f.target} 比较。`,
+          `数组是有序的，所以：如果中间元素偏小，目标只可能在右半区间；偏大则在左半区间；相等则找到了。每次比较都把范围缩小一半。`,
+        ].join('');
+      }
       if (j === undefined && f.pivot !== null) {
         // 单元素比较：与 pivot 对照（如快排扫描）
         const pv = f.values[f.pivot];
@@ -256,8 +266,8 @@ function explainStructure(cur: VizStep, kind: StepKind): string | null {
 function explainTree(cur: VizStep, kind: StepKind): string | null {
   const f = cur.frame;
   if (!isTreeFrame(f)) return null;
-  const nodeIds = f.highlight;
-  const node = f.nodes.find((n) => n.id === nodeIds[nodeIds.length - 1]);
+  const active = f.nodes.find((n) => n.state === 'active');
+  const node = active ?? (f.highlight.length > 0 ? f.nodes.find((n) => n.id === f.highlight[f.highlight.length - 1]) : undefined);
   switch (kind) {
     case 'tree-descend':
       return node

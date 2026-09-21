@@ -197,3 +197,41 @@ describe('deriveStepKind 补充分支', () => {
     expect(kinds).toContain('return');
   });
 });
+
+describe('explainStepBeginner 补充分支', () => {
+  it('二分查找 mid 步：解释区间收缩', () => {
+    const steps = stepsOf('binary-search');
+    const idx = steps.findIndex((s) => s.frame.kind === 'array' && s.frame.pointers.mid !== undefined);
+    expect(idx).toBeGreaterThanOrEqual(0);
+    const ex = explainStepBeginner(steps[idx]!, idx > 0 ? steps[idx - 1] : null);
+    expect(ex).toContain('mid');
+    expect(ex).toContain('区间');
+  });
+
+  it('队列出队：解释 FIFO', () => {
+    const entry = getAlgorithm('queue')!;
+    const steps = collectSteps(entry.run({ type: 'linear', structure: 'queue', initial: ['a', 'b'], operation: { op: 'dequeue' } }));
+    const exs = steps.map((s, i) => explainStepBeginner(s, i > 0 ? steps[i - 1] : null));
+    expect(exs.some((e) => e !== null && e.includes('队'))).toBe(true);
+  });
+
+  it('N 皇后冲突步：解释回溯', () => {
+    const steps = stepsOf('n-queens');
+    const exs = steps.map((s, i) => explainStepBeginner(s, i > 0 ? steps[i - 1] : null));
+    expect(exs.some((e) => e !== null && (e.includes('冲突') || e.includes('回退')))).toBe(true);
+  });
+
+  it('BST 下降步：解释左右子树规则', () => {
+    const entry = getAlgorithm('bst-operations')!;
+    const steps = collectSteps(entry.run({ type: 'bst', startTree: [8, 3, 10], operation: { op: 'search', value: 10 } }));
+    const exs = steps.map((s, i) => explainStepBeginner(s, i > 0 ? steps[i - 1] : null));
+    expect(exs.some((e) => e !== null && e.includes('左子树'))).toBe(true);
+  });
+
+  it('树遍历输出步：解释遍历顺序', () => {
+    const entry = getAlgorithm('tree-traversal')!;
+    const steps = collectSteps(entry.run(entry.defaultInput));
+    const exs = steps.map((s, i) => explainStepBeginner(s, i > 0 ? steps[i - 1] : null));
+    expect(exs.some((e) => e !== null && e.includes('输出序列'))).toBe(true);
+  });
+});
