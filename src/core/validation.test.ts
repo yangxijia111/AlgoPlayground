@@ -2,7 +2,7 @@
  * 输入校验工具测试（TEST_PLAN T4 通用部分）。
  */
 import { describe, expect, it } from 'vitest';
-import { parseIntArray, isSortedAsc } from './validation';
+import { parseIntArray, isSortedAsc, formatDistance } from './validation';
 
 describe('parseIntArray', () => {
   const opts = { minLen: 1, maxLen: 60, minVal: -99, maxVal: 999 };
@@ -52,5 +52,13 @@ describe('isSortedAsc', () => {
   });
   it('降序为 false', () => {
     expect(isSortedAsc([3, 2, 1])).toBe(false);
+  });
+});
+
+describe('formatDistance', () => {
+  it('null 显示 ∞，数值原样显示', () => {
+    expect(formatDistance(null)).toBe('∞');
+    expect(formatDistance(0)).toBe('0');
+    expect(formatDistance(42)).toBe('42');
   });
 });
