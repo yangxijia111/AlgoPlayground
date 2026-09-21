@@ -1,6 +1,7 @@
 /**
  * 应用根组件：全局布局（顶栏 + 左侧导航 + 主区）与路由。
  */
+import { useEffect } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Sidebar } from './ui/components/Sidebar';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
@@ -8,9 +9,24 @@ import AlgorithmPage from './ui/pages/AlgorithmPage';
 import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
 import { useTheme } from './ui/hooks/useTheme';
+import { getLearningStore } from './core/storage/store';
 
 export default function App() {
   const { theme, toggle } = useTheme();
+
+  // 学习数据：页面隐藏/关闭前立即持久化（平时 300ms 防抖写盘）
+  useEffect(() => {
+    const store = getLearningStore();
+    const flush = () => store.flush();
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', flush);
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', flush);
+      store.flush();
+    };
+  }, []);
+
   return (
     <HashRouter>
       <div className="app-shell">

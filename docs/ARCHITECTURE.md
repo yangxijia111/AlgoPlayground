@@ -42,6 +42,7 @@
 | ADR-6 | **路由 react-router-dom**，一页 = 一个注册表条目 `/:category/:algoId` | 算法数量多且同构，注册表驱动可避免大量重复页面代码 |
 | ADR-7 | **帧内含布局坐标**（树/图 x,y ∈ [0,1] 相对坐标） | 快照自包含，渲染器零布局逻辑；图编辑采用"编辑→运行提交"模式（见下） |
 | ADR-8 | 比较模式复用同一 PlaybackEngine，`stepCount = max(各算法步数)`，短者在末尾保持终态 | 单一时间轴，实现最简且同步语义清晰 |
+| ADR-9 | **学习数据用可订阅纯 TS 单例 store**（`LearningStore` + `useSyncExternalStore`），不引入 Redux/Zustand | 学习数据跨 6+ 页面共享、写操作语义复杂（领域方法），与 PlaybackEngine 同风格可 headless 测试；localStorage 是持久层、内存 store 是运行时单一来源（见 docs/LEARNING_DATA_SPEC.md §4）；写入防抖 300ms + beforeunload flush；损坏数据绝不导致白屏（迁移/校验回退默认档案） |
 
 ## 目录结构
 
