@@ -1,4 +1,4 @@
-name: CI
+name: E2E
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  gate:
+  playwright:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,15 +15,13 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      # coverage 运行内含全部单测，并按 core 层阈值校验
-      - run: npm run test:coverage
-      - run: npm run build
-      - name: 上传覆盖率报告
-        if: always()
+      - run: npx playwright install --with-deps chromium
+      # test:e2e 的 webServer 会先 build 再启动 vite preview
+      - run: npm run test:e2e
+      - name: 上传测试报告（失败时）
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage
+          name: playwright-report
+          path: playwright-report
           retention-days: 7
