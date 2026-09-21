@@ -8,6 +8,8 @@ import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import AlgorithmPage from './ui/pages/AlgorithmPage';
 import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
+import LearnPage from './ui/pages/LearnPage';
+import ConceptPage from './ui/pages/ConceptPage';
 import { useTheme } from './ui/hooks/useTheme';
 import { getLearningStore } from './core/storage/store';
 
@@ -51,6 +53,8 @@ export default function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/learn" element={<LearnPage />} />
+                <Route path="/learn/concept/:conceptId" element={<ConceptPage />} />
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/:category/:algoId" element={<AlgorithmPage />} />
                 <Route

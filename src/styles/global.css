@@ -1367,3 +1367,254 @@ input[type='range'] {
     animation: none !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   P10 学习体验：Sidebar 状态点 / 学习路线页 / 概念课页
+   -------------------------------------------------------------------------- */
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  flex: none;
+  transition: background 0.2s;
+}
+
+.sidebar-state-dot.is-started {
+  background: var(--state-success);
+}
+
+.sidebar-feature {
+  font-weight: 600;
+}
+
+.learn-page {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.learn-head h1 {
+  margin: 0 0 6px;
+}
+
+.learn-head p {
+  margin: 0;
+  color: var(--color-text-dim);
+}
+
+.learn-section {
+  padding: 16px 18px;
+}
+
+.learn-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.learn-section-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.learn-blurb {
+  margin: 0;
+  color: var(--color-text-dim);
+  font-size: 0.9rem;
+}
+
+.learn-section-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.learn-progress-track {
+  width: 96px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--state-muted);
+  overflow: hidden;
+}
+
+.learn-progress-fill {
+  height: 100%;
+  background: var(--state-success);
+  transition: width 0.3s;
+}
+
+.learn-progress-text {
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  min-width: 34px;
+  text-align: right;
+}
+
+.learn-lessons {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.learn-lesson {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.learn-lesson:hover {
+  background: var(--color-accent-soft);
+}
+
+.lesson-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-border);
+  flex: none;
+}
+
+.lesson-dot.is-done {
+  background: var(--state-success);
+}
+
+.lesson-title {
+  font-weight: 600;
+}
+
+.lesson-en {
+  color: var(--color-text-dim);
+  font-size: 0.82rem;
+}
+
+.lesson-next {
+  font-size: 0.78rem;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.lesson-done-mark {
+  font-size: 0.78rem;
+  color: var(--state-success);
+}
+
+.concept-page {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.concept-crumb {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+}
+
+.concept-crumb a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.concept-head h1 {
+  margin: 8px 0 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.concept-en {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--color-text-dim);
+}
+
+.concept-summary {
+  margin: 0;
+  color: var(--color-text-dim);
+}
+
+.concept-section-card {
+  padding: 16px 18px;
+}
+
+.concept-section-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  color: var(--color-accent);
+}
+
+.concept-section-card p {
+  margin: 0 0 8px;
+  line-height: 1.7;
+}
+
+.concept-section-card ul {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.concept-related {
+  padding: 16px 18px;
+}
+
+.concept-related h2 {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+}
+
+.concept-related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.concept-related-list a {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.concept-related-list a:hover {
+  background: var(--color-accent-soft);
+}
+
+@media (max-width: 720px) {
+  .learn-section-head {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -3,12 +3,13 @@
  * 中栏 = 输入编辑器 + 可视化 + 播放器；右栏 = 教学面板。
  * 校验失败时保留上一次成功步骤并显示错误（STATE_SPEC §6）。
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getAlgorithm } from '../../core/registry';
 import type { AlgorithmEntry, AlgorithmInput } from '../../core/registry';
 import { collectSteps } from '../../core/step/step';
 import type { VizStep } from '../../core/step/step';
+import { getLearningStore } from '../../core/storage/store';
 import { isArrayFrame, isStructureFrame, isTreeFrame, isGraphFrame, isRecursionFrame, isNQueensFrame, isDPFrame } from '../../core/step/frame';
 import { PlayerBar } from '../components/PlayerBar';
 import { TeachingPanel } from '../components/TeachingPanel';
@@ -85,6 +86,15 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   const [input, setInput] = useState<AlgorithmInput>(entry.defaultInput);
   const [steps, setSteps] = useState<VizStep[]>(() => collectSteps(entry.run(entry.defaultInput)));
   const [error, setError] = useState<string | null>(null);
+  const store = getLearningStore();
+
+  // 学习记录：进入页面计数（ref 防抖：StrictMode 重挂不重复计数）
+  const viewedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (viewedRef.current === entry.meta.id) return;
+    viewedRef.current = entry.meta.id;
+    store.recordAlgorithmView(entry.meta.id);
+  }, [entry.meta.id, store]);
 
   const commit = useCallback(
     (next: AlgorithmInput) => {
@@ -102,6 +112,11 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
 
   const { engine, snapshot } = usePlayback(steps.length);
   useKeyboardShortcuts(engine);
+
+  // 学习记录：播放到末步视为「看完动画」
+  useEffect(() => {
+    if (snapshot.finished && snapshot.total > 1) store.markAnimationWatched(entry.meta.id);
+  }, [snapshot.finished, snapshot.total, entry.meta.id, store]);
 
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (

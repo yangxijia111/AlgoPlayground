@@ -84,3 +84,20 @@
 - CI 升级：coverage 纳入门禁并上传报告；新增独立 E2E、Security（Gitleaks 全历史扫描）、Pages 工作流；Dependabot（npm + github-actions，weekly）。
 - Node 版本统一：engines >=20 + .nvmrc（20）。
 - 文档一致性：README 测试数量更新为实际运行结果（此前残留 293，实际 375 + 35 E2E）。
+
+## [Unreleased] — v1.1.0 开发中（P10 Learning Experience）
+
+### P10-0 — Learning Architecture ✅
+- 新增学习数据类型层 `src/core/learning/types.ts`：LearningProfile v1 schema（progress/quiz/predict/challenge/bookmarks/notes/savedGraphs/settings/activityDays），版本化（storageVersion）。
+- 新增 `src/core/storage/`：防御性加载与校验（无数据/损坏 JSON/未来版本三类回退，绝不白屏；未来版本拒绝加载且不写入）；`LearningStore` 可订阅单例（领域方法唯一写入口、不可变更新、300ms 防抖持久化、flush、localStorage 不可用时内存降级）；迁移框架 `MIGRATIONS` 预留 v1→v2 通路。
+- React 绑定 `useLearningProfile`（useSyncExternalStore）；App 挂载 beforeunload/visibilitychange 即时持久化。
+- ADR-9 记录状态管理选型（ARCHITECTURE.md）。
+- 新增 42 项测试，累计 417 项全绿；coverage 98.69/92.40/99.48/98.69 达标。
+
+### P10-1 — Learning Path ✅
+- 新增学习路线数据 `src/core/learning/path.ts`：13 章初学者路线覆盖全部 22 个算法 + 4 节概念课；章节完成度/推荐下一步/整体进度派生函数（纯函数、可测）。
+- 新增概念课内容 `src/core/learning/concepts.ts`：算法是什么/数据结构是什么/时间复杂度/空间复杂度（What/Why/Key Points 结构化内容 + 关联算法）。
+- 新增 `/learn` 学习路线页（章节卡片、进度条、已完成标记、推荐下一步，不强制解锁）与 `/learn/concept/:id` 概念课页（访问即记录 `concept:<id>` 进度）。
+- 侧栏新增「学习路线」入口；算法条目显示学习状态圆点（已访问点亮）。
+- 算法页挂接进度记录：进入页面 viewCount+1（StrictMode 安全），播放到末步标记 animationWatched。
+- 新增 15 项测试与 3 项 E2E（路线导航/概念课/状态点亮），累计 432 项单测 + 38 项 E2E 全绿。
