@@ -81,6 +81,12 @@
 - [x] v1.0.1 tag + GitHub Release 完成
 - [x] P9_FINAL_REPORT.md 完成
 
+## P10 Learning Experience（🚧 进行中，目标 v1.1.0）
+
+范围：将项目从「算法可视化工具」升级为「交互式学习平台」。学习闭环：知识讲解 → 看动画 → 单步观察 → 初学者解释 → 猜下一步 → 小测验 → 挑战 → 复习 → 掌握度 → 学习记录。轻量、本地优先、无登录、无后端、无 AI API。
+
+拆解与验收标准见 [P10_ROADMAP.md](P10_ROADMAP.md)（P10-0 架构 → P10-1 学习路线 → P10-2 Beginner+术语 → P10-3 预测 → P10-4 测验 → P10-5 挑战 → P10-6 掌握度 → P10-7 笔记收藏 → P10-8 分享/导入导出 → P10-9 递归树/DP/复杂度 → P10-10 审计与发布）。规格：LEARNING_EXPERIENCE_SPEC / LEARNING_DATA_SPEC / PREDICT_SPEC / QUIZ_SPEC / CHALLENGE_SPEC / PROGRESS_SPEC。
+
 ## 状态
 
 | Phase | 状态 |
@@ -95,3 +101,4 @@
 | P7 | ✅ 完成 |
 | P8 | ✅ 完成（v1.0.0 已发布） |
 | P9 | ✅ 完成（v1.0.1 已发布） |
+| P10 | 🚧 进行中（目标 v1.1.0） |
