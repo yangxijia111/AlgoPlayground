@@ -1,7 +1,7 @@
 {
   "name": "algoplayground",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "面向初学者的交互式数据结构与算法可视化平台",
   "type": "module",
   "scripts": {

@@ -117,3 +117,9 @@ AlgoPlayground/
 6. Playwright E2E 冒烟（核心页面播放一轮）纳入 CI。
 7. 英文界面 i18n；无障碍再审计（屏幕阅读器走查）。
 8. 课程模式：按知识点编排的引导式学习路径与练习题。
+
+---
+
+# 附录：P9 Public Release Hardening（v1.0.1，2026-09-21）
+
+在 v1.0.0 基础上完成公开发布工程化强化（详见 docs/P9_FINAL_REPORT.md）：MIT LICENSE、GitHub Pages 在线 Demo、Playwright E2E（35 项）、覆盖率体系（core 层 ≥98% 阈值，实际 98.99%/92.10%/99.29%/98.99%）、单测扩充至 375 项、ErrorBoundary、Dependabot、Gitleaks 安全扫描、CI 升级、Node 20 统一。v1.0.0 的历史数据（358 项测试等）保留如上，不再修改。

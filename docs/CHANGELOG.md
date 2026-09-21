@@ -70,3 +70,17 @@
 ## [1.0.0] — 2026-09-20
 
 首个稳定版本：20 个算法可视化 + 统一播放器 + 教学面板 + 排序比较模式 + 图交互编辑器 + 双主题；358 项自动化测试全绿。
+
+## [1.0.1] — 2026-09-21
+
+### P9 — Public Release Hardening
+
+- 新增正式 MIT LICENSE 文件（GitHub 可识别）。
+- 新增 GitHub Pages 在线 Demo：官方 Actions 部署，`vite build --base=/AlgoPlayground/` 子路径处理，HashRouter 保证深层链接刷新不 404。
+- 新增 Playwright（Chromium）E2E：35 项用例覆盖首页、冒泡排序、播放器（Next/Prev/Restart/Speed/Timeline）、二分查找、链表插入、BST 插入/搜索、Dijkstra 距离与最短路径、比较模式、主题持久化、全站 18 页导航无崩溃；全部基于 locator/expect/poll 的确定性等待。
+- 新增覆盖率体系：@vitest/coverage-v8，`npm run test:coverage`；core 层真实覆盖率 Statements 98.99% / Branches 92.10% / Functions 99.29% / Lines 98.99%，阈值设为 98/90/98/98。
+- 补充关键测试（375 项单测）：步骤完整性检查器全部失败分支、7 个帧类型守卫、注册表查找函数、formatDistance、图预设满网格回退。
+- 新增 React ErrorBoundary（公开 Demo 崩溃兜底）。
+- CI 升级：coverage 纳入门禁并上传报告；新增独立 E2E、Security（Gitleaks 全历史扫描）、Pages 工作流；Dependabot（npm + github-actions，weekly）。
+- Node 版本统一：engines >=20 + .nvmrc（20）。
+- 文档一致性：README 测试数量更新为实际运行结果（此前残留 293，实际 375 + 35 E2E）。
