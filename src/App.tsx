@@ -3,6 +3,7 @@
  */
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Sidebar } from './ui/components/Sidebar';
+import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import AlgorithmPage from './ui/pages/AlgorithmPage';
 import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
@@ -31,20 +32,22 @@ export default function App() {
         <div className="app-body">
           <Sidebar />
           <main className="app-main" id="main">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/compare" element={<ComparePage />} />
-              <Route path="/:category/:algoId" element={<AlgorithmPage />} />
-              <Route
-                path="*"
-                element={
-                  <div className="page-missing">
-                    <h2>页面不存在</h2>
-                    <p>请从左侧选择一个算法。</p>
-                  </div>
-                }
-              />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/compare" element={<ComparePage />} />
+                <Route path="/:category/:algoId" element={<AlgorithmPage />} />
+                <Route
+                  path="*"
+                  element={
+                    <div className="page-missing">
+                      <h2>页面不存在</h2>
+                      <p>请从左侧选择一个算法。</p>
+                    </div>
+                  }
+                />
+              </Routes>
+            </ErrorBoundary>
           </main>
         </div>
       </div>

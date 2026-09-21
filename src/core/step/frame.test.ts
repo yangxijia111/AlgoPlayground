@@ -12,6 +12,7 @@ import {
   isDPFrame,
 } from './frame';
 import { arrayFrame, structureFrame } from './frame';
+import type { Frame } from './frame';
 
 describe('帧类型守卫', () => {
   it('arrayFrame：仅 isArrayFrame 为真', () => {
@@ -26,19 +27,19 @@ describe('帧类型守卫', () => {
   });
 
   it('structureFrame：仅 isStructureFrame 为真', () => {
-    const f = structureFrame('stack', [], {});
+    const f = structureFrame('stack', [], {}, '测试');
     expect(isStructureFrame(f)).toBe(true);
     expect(isArrayFrame(f)).toBe(false);
   });
 
   it('其余帧类型：各自守卫为真、其余为假', () => {
-    const tree = { kind: 'tree', nodes: [], edges: [], highlight: [], output: [], message: '' } as const;
-    const graph = { kind: 'graph', nodes: [], edges: [], current: null, frontier: [], frontierKind: 'none', message: '' } as const;
-    const rec = { kind: 'recursion', callStack: [], pegs: null, lastMove: null, memo: null, message: '' } as const;
-    const queens = { kind: 'nqueens', n: 4, queens: [-1, -1, -1, -1], tryingRow: -1, tryingCol: -1, attacking: false, solutions: [], message: '' } as const;
-    const dp = { kind: 'dp', rowHeaders: [], colHeaders: [], cells: [], current: null, dependencies: [], message: '', extras: { label: '', items: [] } } as const;
-
-    const frames = [tree, graph, rec, queens, dp] as const;
+    const frames: Frame[] = [
+      { kind: 'tree', nodes: [], edges: [], highlight: [], output: [], message: '' },
+      { kind: 'graph', nodes: [], edges: [], current: null, frontier: [], frontierKind: 'none', message: '' },
+      { kind: 'recursion', callStack: [], pegs: null, lastMove: null, memo: null, message: '' },
+      { kind: 'nqueens', n: 4, queens: [-1, -1, -1, -1], tryingRow: -1, tryingCol: -1, attacking: false, solutions: [], message: '' },
+      { kind: 'dp', rowHeaders: [], colHeaders: [], cells: [], current: null, dependencies: [], message: '', extras: { label: '', items: [] } },
+    ];
     const guards = [isTreeFrame, isGraphFrame, isRecursionFrame, isNQueensFrame, isDPFrame];
     for (let i = 0; i < frames.length; i++) {
       for (let j = 0; j < guards.length; j++) {
