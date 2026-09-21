@@ -29,6 +29,9 @@ import { GraphInputEditor } from '../editors/GraphInputEditor';
 import { RecursionInputEditor, NQueensInputEditor, DPInputEditor } from '../editors/RecursionDPEditors';
 import { usePlayback } from '../hooks/usePlayback';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useLearningProfile } from '../hooks/useLearningProfile';
+import { explainStepBeginner, getBeginnerNote } from '../../core/learning/beginner';
+import { useMemo } from 'react';
 
 export default function AlgorithmPage() {
   const { algoId } = useParams();
@@ -118,6 +121,15 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     if (snapshot.finished && snapshot.total > 1) store.markAnimationWatched(entry.meta.id);
   }, [snapshot.finished, snapshot.total, entry.meta.id, store]);
 
+  // Beginner Mode：当前步详解 + 算法要点（frame-diff 确定性生成）
+  const profile = useLearningProfile();
+  const beginner = useMemo(() => {
+    if (!profile.settings.beginnerMode) return { detail: null, note: null };
+    const step = steps[snapshot.index];
+    const prev = snapshot.index > 0 ? steps[snapshot.index - 1] : null;
+    return { detail: step ? explainStepBeginner(step, prev ?? null) : null, note: getBeginnerNote(entry.meta.id) };
+  }, [profile.settings.beginnerMode, steps, snapshot.index, entry.meta.id]);
+
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
     <ArrayStateView frame={step.frame} />
@@ -159,7 +171,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
       </div>
 
       <aside className="algo-right" aria-label="教学说明">
-        <TeachingPanel meta={entry.meta} step={step} stateSlot={stateSlot} />
+        <TeachingPanel meta={entry.meta} step={step} stateSlot={stateSlot} beginner={beginner} />
       </aside>
     </div>
   );

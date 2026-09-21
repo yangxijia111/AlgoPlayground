@@ -23,10 +23,13 @@ export function TeachingPanel({
   meta,
   step,
   stateSlot,
+  beginner,
 }: {
   meta: AlgorithmMeta;
   step?: VizStep;
   stateSlot?: ReactNode;
+  /** Beginner Mode 内容：detail=逐步详解（frame-diff 生成），note=算法级要点；两者可为 null */
+  beginner?: { detail: string | null; note: string | null };
 }) {
   const highlight = new Set(step?.pseudocodeLines ?? []);
 
@@ -83,6 +86,13 @@ export function TeachingPanel({
       <section className="panel-card step-card" aria-live="polite">
         <h3 className="panel-subtitle">当前步骤</h3>
         <p className="step-description">{step ? step.description : '暂无步骤'}</p>
+        {beginner?.detail ? <p className="beginner-detail">{beginner.detail}</p> : null}
+        {beginner?.note ? (
+          <p className="beginner-note">
+            <span className="beginner-note-tag">要点</span>
+            {beginner.note}
+          </p>
+        ) : null}
       </section>
 
       {stateSlot ? (

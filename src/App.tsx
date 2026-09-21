@@ -10,11 +10,16 @@ import ComparePage from './ui/pages/ComparePage';
 import Home from './ui/pages/Home';
 import LearnPage from './ui/pages/LearnPage';
 import ConceptPage from './ui/pages/ConceptPage';
+import GlossaryPage from './ui/pages/GlossaryPage';
 import { useTheme } from './ui/hooks/useTheme';
+import { useLearningProfile } from './ui/hooks/useLearningProfile';
 import { getLearningStore } from './core/storage/store';
 
 export default function App() {
   const { theme, toggle } = useTheme();
+  const profile = useLearningProfile();
+  const store = getLearningStore();
+  const beginnerMode = profile.settings.beginnerMode;
 
   // 学习数据：页面隐藏/关闭前立即持久化（平时 300ms 防抖写盘）
   useEffect(() => {
@@ -39,6 +44,16 @@ export default function App() {
           <span className="app-tagline">交互式算法可视化学习平台</span>
           <button
             type="button"
+            className={`btn btn-icon beginner-toggle${beginnerMode ? ' is-on' : ''}`}
+            onClick={() => store.setBeginnerMode(!beginnerMode)}
+            aria-pressed={beginnerMode}
+            aria-label={beginnerMode ? '切换到标准模式' : '切换到新手模式（Beginner Mode）'}
+            title={beginnerMode ? '新手模式：已开启（每步显示详细解释）' : '新手模式：关闭'}
+          >
+            🎓 新手
+          </button>
+          <button
+            type="button"
             className="btn btn-icon theme-toggle"
             onClick={toggle}
             aria-label={theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'}
@@ -55,6 +70,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/learn" element={<LearnPage />} />
                 <Route path="/learn/concept/:conceptId" element={<ConceptPage />} />
+                <Route path="/glossary" element={<GlossaryPage />} />
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/:category/:algoId" element={<AlgorithmPage />} />
                 <Route

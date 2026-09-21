@@ -101,3 +101,10 @@
 - 侧栏新增「学习路线」入口；算法条目显示学习状态圆点（已访问点亮）。
 - 算法页挂接进度记录：进入页面 viewCount+1（StrictMode 安全），播放到末步标记 animationWatched。
 - 新增 15 项测试与 3 项 E2E（路线导航/概念课/状态点亮），累计 432 项单测 + 38 项 E2E 全绿。
+
+### P10-2 — Beginner Mode + Glossary ✅
+- 新增 Beginner Mode 逐步详解引擎 `src/core/learning/beginner.ts`：`deriveStepKind`（从 Frame 语义字段推导 21 种步骤类型）+ `explainStepBeginner`（按帧类型生成含具体下标/值的中文详解；确定性、本地生成、不调用 AI）；识别不了的步骤不强凑解释（返回 null）。
+- 新增每算法初学者要点 `getBeginnerNote`（22 个算法中 19 个核心算法已覆盖，集中管理，不动算法注册表文件）。
+- 顶栏新增「🎓 新手」全局切换（Beginner/Standard，存入 settings 跨页面保持）；TeachingPanel「当前步骤」卡片双模式：Standard 与 v1.0.1 完全一致，Beginner 显示逐步详解 + 要点标签。
+- 新增术语表 `src/core/learning/glossary.ts`（25 个术语，含任务要求的全部 22 项）；`/glossary` 术语表页（卡片索引 + 相关算法跳转）；概念课文本支持 `[[term:id]]` 标记，渲染为可点击术语引用（TermTip 弹窗，Esc/外点关闭，键盘可操作，不离开当前页面）。
+- 新增 34 项测试（引擎推导/详解内容/确定性/术语数据完整性/UI 弹窗/全局切换集成）+ 3 项 E2E；累计 470 项单测 + 41 项 E2E 全绿。

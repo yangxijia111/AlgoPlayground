@@ -25,6 +25,9 @@ export function Sidebar() {
       <NavLink to="/learn" className={({ isActive }) => `sidebar-link sidebar-feature${isActive ? ' is-active' : ''}`}>
         🎓 学习路线
       </NavLink>
+      <NavLink to="/glossary" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
+        📖 术语表
+      </NavLink>
       <NavLink to="/compare" className={({ isActive }) => `sidebar-link sidebar-compare${isActive ? ' is-active' : ''}`}>
         ⚔ 排序比较模式
       </NavLink>

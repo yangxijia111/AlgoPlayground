@@ -8,6 +8,7 @@ import { getConcept } from '../../core/learning/concepts';
 import { conceptProgressKey } from '../../core/learning/path';
 import { getAlgorithm } from '../../core/registry';
 import { getLearningStore } from '../../core/storage/store';
+import { renderRichText } from '../components/RichText';
 
 export default function ConceptPage() {
   const { conceptId } = useParams();
@@ -53,7 +54,7 @@ export default function ConceptPage() {
         <section key={i} className="card concept-section-card">
           <h2>{s.heading}</h2>
           {s.paragraphs.map((p, j) => (
-            <p key={j}>{p}</p>
+            <p key={j}>{renderRichText(p)}</p>
           ))}
           {s.bullets ? (
             <ul>
