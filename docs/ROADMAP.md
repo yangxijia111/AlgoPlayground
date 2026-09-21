@@ -64,6 +64,23 @@
 - [x] GitHub 仓库存在且含全部提交、tag 已推送
 - [x] CHANGELOG.md 与实际交付一致
 
+## P9 Public Release Hardening（进行中）
+
+范围：文档一致性修正（README 测试数量以实际运行结果为准）；正式 MIT LICENSE；@vitest/coverage-v8 覆盖率与 core 层阈值；Playwright（Chromium）E2E 覆盖 10 类关键用户流程（首页/排序/播放器/二分/链表/BST/Dijkstra/比较模式/主题持久化/全页面导航无崩溃）；React ErrorBoundary；GitHub Pages 官方 Actions 部署（vite build --base=/AlgoPlayground/ + HashRouter 刷新兼容）；Dependabot（npm + github-actions，weekly）；Gitleaks 密钥扫描工作流；CI 升级（coverage 纳入门禁）；Node 20 LTS 统一（engines + .nvmrc）；v1.0.1 发布（tag + GitHub Release）。
+
+约束：不重写项目、不改快照架构、不动 v1.0.0 tag；E2E 禁止任意 sleep；coverage 阈值按真实结果设定。
+
+验收：
+- [ ] LICENSE 存在且 GitHub 可识别
+- [ ] README/文档测试数量与实际一致
+- [ ] npm run test:coverage 可用且达到设定阈值
+- [ ] npm run test:e2e 全部通过（本地 Chromium）
+- [ ] Pages workflow 存在且线上页面可访问（首页/冒泡/Dijkstra/比较模式）
+- [ ] Dependabot 与安全扫描工作流存在
+- [ ] CI 升级后全绿
+- [ ] v1.0.1 tag + GitHub Release 完成
+- [ ] P9_FINAL_REPORT.md 完成
+
 ## 状态
 
 | Phase | 状态 |
@@ -77,3 +94,4 @@
 | P6 | ✅ 完成 |
 | P7 | ✅ 完成 |
 | P8 | ✅ 完成（v1.0.0 已发布） |
+| P9 | 🔄 进行中 |
