@@ -41,9 +41,9 @@ describe('Predict 模式集成（冒泡排序）', () => {
     fireEvent.click(screen.getByRole('button', { name: '考考我' }));
 
     // 题目出现：4 选项 radiogroup
-    const group = screen.getByRole('radiogroup');
+    const group = document.querySelector('.predict-options')!;
     expect(group).toBeTruthy();
-    const options = screen.getAllByRole('radio');
+    const options = Array.from(document.querySelectorAll('.predict-options [role="radio"]')) as HTMLButtonElement[];
     expect(options.length).toBeGreaterThanOrEqual(3);
     expect(screen.queryByRole('button', { name: '提交答案' })?.hasAttribute('disabled')).toBe(true);
 
@@ -61,7 +61,7 @@ describe('Predict 模式集成（冒泡排序）', () => {
 
     // 继续：卡片关闭
     fireEvent.click(screen.getByRole('button', { name: '继续动画' }));
-    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(document.querySelector('.predict-options')).toBeNull();
   });
 
   it('会话正确率显示', () => {
@@ -77,8 +77,8 @@ describe('Predict 模式集成（冒泡排序）', () => {
     fireEvent.click(screen.getByRole('button', { name: /预测模式/ }));
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
     fireEvent.click(screen.getByRole('button', { name: '考考我' }));
-    expect(screen.getByRole('radiogroup')).toBeTruthy();
+    expect(document.querySelector('.predict-options')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '关闭预测模式' }));
-    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(document.querySelector('.predict-options')).toBeNull();
   });
 });

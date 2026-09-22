@@ -34,6 +34,8 @@ import { explainStepBeginner, getBeginnerNote } from '../../core/learning/beginn
 import { generatePredictQuestion } from '../../core/predict/engine';
 import type { PredictQuestion } from '../../core/predict/engine';
 import { PredictCard } from '../components/PredictCard';
+import { QuizCard } from '../components/QuizCard';
+import { questionsByAlgorithm } from '../../core/quiz';
 
 export default function AlgorithmPage() {
   const { algoId } = useParams();
@@ -174,6 +176,23 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     setPredict(null);
   }, []);
 
+  // Quiz：本算法题组与历史记录
+  const quizQuestions = useMemo(() => questionsByAlgorithm(entry.meta.id), [entry.meta.id]);
+  const quizHistory = useMemo(() => {
+    const out: Record<string, { attemptCount: number; lastCorrect: boolean }> = {};
+    const rec = profile.progress[entry.meta.id]?.quiz;
+    if (rec) {
+      for (const [qid, r] of Object.entries(rec)) out[qid] = { attemptCount: r.attemptCount, lastCorrect: r.lastCorrect };
+    }
+    return out;
+  }, [profile.progress, entry.meta.id]);
+  const answerQuiz = useCallback(
+    (questionId: string, correct: boolean) => {
+      store.recordQuizAnswer(entry.meta.id, questionId, correct);
+    },
+    [store, entry.meta.id],
+  );
+
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
     <ArrayStateView frame={step.frame} />
@@ -249,6 +268,13 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
 
       <aside className="algo-right" aria-label="教学说明">
         <TeachingPanel meta={entry.meta} step={step} stateSlot={stateSlot} beginner={beginner} />
+        {quizQuestions.length > 0 ? (
+          <QuizCard
+            questions={quizQuestions}
+            history={quizHistory}
+            onAnswer={answerQuiz}
+          />
+        ) : null}
       </aside>
     </div>
   );

@@ -115,3 +115,10 @@
 - 算法页新增「🤔 预测模式」：播放每推进 4 步自动暂停出题（可关闭），或手动「考考我」；答题流程 选择 → 提交 → 对/错反馈 → 真实下一步解释 → 继续动画。
 - 评分入库：attempts（algorithmId/stepIndex/stepType/correct/时间）计入掌握度；会话内正确率实时显示。
 - 新增 16 项单测 + 2 项 E2E；累计 486 项单测 + 43 项 E2E 全绿。
+
+### P10-4 — Quiz System ✅
+- 新增 Quiz 类型与判分 `src/core/quiz/types.ts`：single/multiple/judge 三题型；多选需全部选对；越界/空选择防御性判错。判分纯函数、零 UI 依赖。
+- 新增题库 62 道（sortingSearching.ts + structuresAlgo.ts）：20 个核心算法组各 3–5 道高质量中文题，覆盖 concept/complexity/stability/trace/mechanism 五类；每题带必填解析与难度分级；题目与 React 组件完全分离。
+- 题库完整性静态校验测试：id 唯一、algorithmId 存在于注册表、options/answer 与题型匹配、核心算法 ≥3 题且 ≥2 类别。
+- 算法页新增「📝 随堂小测」：顺序作答、即时判分与解析、提交后锁定、下一题/再做一轮、历史对错圆点（刷新保留）；答题记录经 store 入库（attemptCount 累加、lastCorrect 覆盖）。
+- 新增 17 项单测 + 2 项 E2E；累计 513 项单测 + 45 项 E2E 全绿；coverage 98.43/91.86/99.57/98.43。
