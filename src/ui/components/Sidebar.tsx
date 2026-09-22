@@ -1,18 +1,38 @@
 /**
  * 左侧导航：顶部页面入口 + 算法分类与列表（注册表驱动）。
- * 算法条目旁显示学习状态圆点（已访问=实心绿点；P10-6 起升级为掌握度等级色）。
+ * 算法条目旁显示掌握度状态点（学习中蓝 / 接近掌握黄 / 已掌握绿 / 未开始灰）。
  */
 import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CATEGORIES, algorithmsByCategory } from '../../core/registry';
 import { useLearningProfile } from '../hooks/useLearningProfile';
+import { computeMastery } from '../../core/progress/mastery';
+import type { MasteryLevel } from '../../core/progress/mastery';
+
+const DOT_CLASS: Partial<Record<MasteryLevel, string>> = {
+  learning: 'is-started',
+  practicing: 'is-started',
+  almost: 'is-started is-almost',
+  mastered: 'is-started is-mastered',
+};
+
+const LEVEL_LABEL: Record<MasteryLevel, string> = {
+  'not-started': '未开始',
+  learning: '学习中',
+  practicing: '练习中',
+  almost: '接近掌握',
+  mastered: '已掌握',
+};
 
 export function Sidebar() {
   const profile = useLearningProfile();
-  const viewed = useMemo(() => {
-    const out = new Set<string>();
-    for (const [k, v] of Object.entries(profile.progress)) {
-      if (v.viewCount >= 1) out.add(k);
+  const levels = useMemo(() => {
+    const out = new Map<string, MasteryLevel>();
+    for (const cat of CATEGORIES) {
+      for (const entry of algorithmsByCategory(cat.id)) {
+        const p = profile.progress[entry.meta.id];
+        out.set(entry.meta.id, p ? computeMastery(p).level : 'not-started');
+      }
     }
     return out;
   }, [profile]);
@@ -28,6 +48,9 @@ export function Sidebar() {
       <NavLink to="/challenges" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
         ⚡ 挑战
       </NavLink>
+      <NavLink to="/progress" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
+        📈 进度
+      </NavLink>
       <NavLink to="/glossary" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
         📖 术语表
       </NavLink>
@@ -41,17 +64,20 @@ export function Sidebar() {
           <div key={cat.id} className="sidebar-group">
             <div className="sidebar-group-title">{cat.name}</div>
             <ul>
-              {algos.map((a) => (
-                <li key={a.meta.id}>
-                  <NavLink to={`/${cat.id}/${a.meta.id}`} className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
-                    <span
-                      className={`sidebar-state-dot${viewed.has(a.meta.id) ? ' is-started' : ''}`}
-                      aria-label={viewed.has(a.meta.id) ? '学习中' : '未开始'}
-                    />
-                    {a.meta.name}
-                  </NavLink>
-                </li>
-              ))}
+              {algos.map((a) => {
+                const level = levels.get(a.meta.id) ?? 'not-started';
+                return (
+                  <li key={a.meta.id}>
+                    <NavLink to={`/${cat.id}/${a.meta.id}`} className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
+                      <span
+                        className={`sidebar-state-dot${DOT_CLASS[level] ? ` ${DOT_CLASS[level]}` : ''}`}
+                        aria-label={LEVEL_LABEL[level]}
+                      />
+                      {a.meta.name}
+                    </NavLink>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         );

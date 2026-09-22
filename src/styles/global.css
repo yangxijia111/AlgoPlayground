@@ -2175,3 +2175,174 @@ input[type='range'] {
   background: rgba(239, 91, 91, 0.1);
   color: var(--state-danger);
 }
+
+/* --------------------------------------------------------------------------
+   P10-6 Progress
+   -------------------------------------------------------------------------- */
+
+.progress-page {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.stat-card {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+}
+
+.progress-section {
+  padding: 16px 18px;
+}
+
+.progress-section h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.category-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-bars li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-bar-name {
+  min-width: 70px;
+  font-size: 0.88rem;
+}
+
+.category-bars .learn-progress-track {
+  flex: 1;
+}
+
+.category-bar-meta {
+  min-width: 130px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+}
+
+.recent-list,
+.bookmark-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recent-list a,
+.bookmark-list a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.recent-time {
+  margin-left: 10px;
+  color: var(--color-text-dim);
+  font-size: 0.8rem;
+}
+
+.progress-empty {
+  margin: 0;
+  color: var(--color-text-dim);
+}
+
+.progress-empty a {
+  color: var(--color-accent);
+}
+
+.progress-table-wrap {
+  overflow-x: auto;
+}
+
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.progress-table th,
+.progress-table td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.progress-table a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.mastery-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.lvl-not-started {
+  background: var(--state-muted);
+  color: var(--color-text-dim);
+}
+
+.lvl-learning {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.lvl-practicing {
+  background: rgba(62, 170, 207, 0.16);
+  color: #2fa8c9;
+}
+
+.lvl-almost {
+  background: rgba(242, 199, 68, 0.16);
+  color: var(--state-active);
+}
+
+.lvl-mastered {
+  background: rgba(62, 207, 142, 0.16);
+  color: var(--state-success);
+}
+
+.sidebar-state-dot.is-almost {
+  background: var(--state-active);
+}
+
+.sidebar-state-dot.is-mastered {
+  background: var(--state-success);
+}

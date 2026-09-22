@@ -130,3 +130,10 @@
 - 错误反馈具教学价值：说明算法此刻应该做什么（如「BFS 用队列，下一步应访问最早入队的节点」），错误反馈引用期望动作 + 真实步骤解说。
 - TreeView/GraphView 新增可选 `onSelectNode`（默认不传行为不变）；新增 `/challenges` 列表与 `/challenges/:id` 玩法页；完成挑战写入 store（attempts/bestMistakes）计入掌握度。
 - 新增 13 项状态机单测 + 7 项 E2E；累计 526 项单测 + 52 项 E2E 全绿。
+
+### P10-6 — Progress & Mastery ✅
+- 新增掌握度规则 `src/core/progress/mastery.ts`：可解释的确定性 0–100 分制（看完动画 25 + Quiz ≤25 + Predict ≤25 + Challenge 20 + 复习 5）；五级映射（未开始/学习中/练习中/接近掌握/已掌握）；PROGRESS_SPEC §4 锚定表逐行对齐单测。
+- 新增聚合计算 `src/core/progress/summary.ts`：统计卡（学习天数/总练习次数/已学/已掌握/收藏）、分类掌握条形、算法明细、最近学习（纯函数、可测、渲染端 useMemo 派生）。
+- 新增 `/progress` 页：统计卡、8 分类掌握条形、最近学习、算法明细表（掌握度徽章 + Quiz/Predict 正确率 + 挑战完成）、收藏区（含概念课）；空态引导。
+- 侧栏状态点升级为掌握度等级色（学习中蓝/接近掌握黄/已掌握绿/未开始灰，aria-label 同步）。
+- 新增 17 项掌握度单测 + 3 项 UI 测试 + 2 项 E2E；累计 546 项单测 + 54 项 E2E 全绿。
