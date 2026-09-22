@@ -16,6 +16,7 @@ const makeEmit = (
     dependencies: number[],
     message: string,
     lines: number[],
+    transition?: DPFrame['transition'],
   ): VizStep => {
     const frame: DPFrame = {
       kind: 'dp',
@@ -26,6 +27,7 @@ const makeEmit = (
       dependencies: [...dependencies],
       message,
       extras: { label: extras.label, items: [...extras.items] },
+      ...(transition ? { transition } : {}),
     };
     return { frame, description: message, pseudocodeLines: lines, counters: { ...counters } };
   };
@@ -61,7 +63,19 @@ export function* fibDPGen(n: number): Generator<VizStep, void, void> {
       const dep = [idx(i - 1), idx(i - 2)];
       cells[idx(i)] = (cells[idx(i - 1)] as number) + (cells[idx(i - 2)] as number);
       counters.fills++;
-      yield emit(cells, idx(i), dep, `dp[${i}] = dp[${i - 1}] + dp[${i - 2}] = ${cells[idx(i - 1)]} + ${cells[idx(i - 2)]} = ${cells[idx(i)]}`, [2, 3]);
+      yield emit(
+        cells, idx(i), dep,
+        `dp[${i}] = dp[${i - 1}] + dp[${i - 2}] = ${cells[idx(i - 1)]} + ${cells[idx(i - 2)]} = ${cells[idx(i)]}`,
+        [2, 3],
+        {
+          formula: 'dp[i] = dp[i-1] + dp[i-2]',
+          candidates: [
+            { label: `dp[${i - 1}]`, value: cells[idx(i - 1)] as number },
+            { label: `dp[${i - 2}]`, value: cells[idx(i - 2)] as number },
+          ],
+          chosen: '两者相加：当前值由最近两个子问题唯一确定',
+        },
+      );
     }
   }
   yield emit(cells, idx(n), [], `完成：dp[${n}] = ${cells[idx(n)]}（对照朴素递归，填表只需 ${Math.max(0, n - 2)} 次加法）`, [4]);
@@ -129,7 +143,18 @@ export function* knapsackGen(items: { name: string; weight: number; value: numbe
           : take > notTake
             ? `不选 = ${notTake}，选 = ${take} → 选更优，dp = ${take}`
             : `不选 = ${notTake}，选 = ${take} → 不选更优（或相同），dp = ${notTake}`;
-      yield emit(cells, idx(i, w), deps, `计算 dp[${i}][${w}]（考虑物品 ${it.name}，w=${it.weight}, v=${it.value}）：${explain}`, [4, 5, 6]);
+      const candidates: { label: string; value: number }[] = [{ label: '不选', value: notTake }];
+      if (take !== null) candidates.push({ label: `选 ${it.name}`, value: take });
+      yield emit(
+        cells, idx(i, w), deps,
+        `计算 dp[${i}][${w}]（考虑物品 ${it.name}，w=${it.weight}, v=${it.value}）：${explain}`,
+        [4, 5, 6],
+        {
+          formula: 'dp[i][w] = max(dp[i-1][w], dp[i-1][w-wt[i]] + val[i])',
+          candidates,
+          chosen: take === null ? '容量不足，只能不选该物品' : take > notTake ? `选 ${it.name} 更优` : '不选更优（或相同）',
+        },
+      );
     }
   }
   const answer = cells[idx(n, W)] as number;

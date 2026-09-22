@@ -174,6 +174,21 @@ export interface PegView {
   disks: number[];
 }
 
+/** 递归树节点状态（沿用调用栈语义，另含未激活灰态） */
+export type RecursionTreeNodeState = 'active' | 'waiting' | 'returned' | 'normal';
+
+export interface RecursionTreeNodeView {
+  /** 唯一 id（调用序号） */
+  id: string;
+  /** 如 "fib(4)" */
+  label: string;
+  /** 父节点 id；根为 null */
+  parent: string | null;
+  state: RecursionTreeNodeState;
+  /** 返回值文本（returned 时有值） */
+  returnValue: string | null;
+}
+
 export interface RecursionFrame {
   kind: 'recursion';
   /** 调用栈，底→顶 */
@@ -185,6 +200,8 @@ export interface RecursionFrame {
   /** 结果/备忘条目 */
   memo: { key: string; value: string }[] | null;
   message: string;
+  /** 可选：递归树视图数据（v1.1 起由斐波那契递归填充；向后兼容字段） */
+  tree?: { nodes: RecursionTreeNodeView[]; currentId: string | null };
 }
 
 // ---------------------------------------------------------------------------
@@ -210,6 +227,15 @@ export interface NQueensFrame {
 // dp：斐波那契 DP / 0-1 背包
 // ---------------------------------------------------------------------------
 
+export interface DPTransition {
+  /** 转移公式，如 "dp[i][w] = max(dp[i-1][w], dp[i-1][w-wt]+val)" */
+  formula: string;
+  /** 候选值对比 */
+  candidates: { label: string; value: number }[];
+  /** 最终选择及原因（短语） */
+  chosen: string;
+}
+
 export interface DPFrame {
   kind: 'dp';
   rowHeaders: string[];
@@ -223,6 +249,8 @@ export interface DPFrame {
   message: string;
   /** 附加信息（如背包物品清单） */
   extras: { label: string; items: string[] };
+  /** 可选：本格转移公式与候选对比（v1.1 教学增强；向后兼容字段） */
+  transition?: DPTransition;
 }
 
 // ---------------------------------------------------------------------------

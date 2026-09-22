@@ -54,6 +54,9 @@ export function Sidebar() {
       <NavLink to="/glossary" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
         📖 术语表
       </NavLink>
+      <NavLink to="/complexity" className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}>
+        📊 复杂度
+      </NavLink>
       <NavLink to="/compare" className={({ isActive }) => `sidebar-link sidebar-compare${isActive ? ' is-active' : ''}`}>
         ⚔ 排序比较模式
       </NavLink>

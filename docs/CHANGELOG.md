@@ -151,3 +151,9 @@
 - 图编辑器新增图预设：按名称保存当前图（复用规模/自环/重复边校验）、下拉加载、删除；存入 learning store（上限 20 个）。
 - 新增 `docs/PRIVACY.md`：零数据收集声明、本地存储明细、分享链接隐私边界、开源可审计。
 - 新增 26 项单测 + 5 项 E2E；累计 578 项单测 + 62 项 E2E 全绿。
+
+### P10-9 — Recursion Tree / DP 增强 / Complexity Explorer ✅
+- 递归树：`RecursionFrame` 向后兼容扩展可选 `tree` 字段（节点 id/label/parent/state/returnValue）；斐波那契递归生成器逐步填充（active/waiting/returned 三态、当前节点光环）；`RecursionView` 新增 调用栈/递归树 Tab 切换；树布局叶子等分、父居中（纯函数可测）；fib(12) 全程 465 节点流畅渲染。现有 recursion 测试零回归。
+- DP 教学增强：`DPFrame.transition?`（公式/候选对比/选择原因）；fib-dp 与 0/1 背包填格步填充（背包给出「不选 vs 选」两候选及 chosen 原因）；DPStateView 展示转移公式、候选对比与选择。
+- Complexity Explorer：`/complexity` 页 + `core/learning/complexity.ts`（六类增长函数、对数轴 SVG 折线、n 可调滑杆、操作数对照表、13 个算法的三档复杂度映射并显式区分最好/平均/最坏——如快排平均 O(n log n)、最坏 O(n²)）。
+- 新增 9 项单测 + 3 项 E2E；累计 587 项单测 + 65 项 E2E 全绿；coverage 98.44/91.14/99.65/98.44。

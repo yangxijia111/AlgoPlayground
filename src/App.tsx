@@ -13,6 +13,7 @@ import ConceptPage from './ui/pages/ConceptPage';
 import GlossaryPage from './ui/pages/GlossaryPage';
 import { ChallengesPage, ChallengePlayPage } from './ui/pages/ChallengePage';
 import ProgressPage from './ui/pages/ProgressPage';
+import ComplexityPage from './ui/pages/ComplexityPage';
 import { useTheme } from './ui/hooks/useTheme';
 import { useLearningProfile } from './ui/hooks/useLearningProfile';
 import { getLearningStore } from './core/storage/store';
@@ -76,6 +77,7 @@ export default function App() {
                 <Route path="/challenges" element={<ChallengesPage />} />
                 <Route path="/challenges/:challengeId" element={<ChallengePlayPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
+                <Route path="/complexity" element={<ComplexityPage />} />
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/:category/:algoId" element={<AlgorithmPage />} />
                 <Route

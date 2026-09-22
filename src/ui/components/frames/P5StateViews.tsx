@@ -85,6 +85,24 @@ export function DPStateView({ frame }: { frame: DPFrame }) {
           </code>
         </li>
       ) : null}
+      {frame.transition ? (
+        <>
+          <li>
+            <span className="state-key">转移公式</span>
+            <code className="state-val">{frame.transition.formula}</code>
+          </li>
+          <li>
+            <span className="state-key">候选对比</span>
+            <code className="state-val">
+              {frame.transition.candidates.map((c) => `${c.label}=${c.value}`).join('，')}
+            </code>
+          </li>
+          <li>
+            <span className="state-key">选择</span>
+            <code className="state-val">{frame.transition.chosen}</code>
+          </li>
+        </>
+      ) : null}
     </ul>
   );
 }

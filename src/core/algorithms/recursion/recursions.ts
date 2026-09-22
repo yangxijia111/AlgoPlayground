@@ -2,7 +2,7 @@
  * 递归可视化生成器：阶乘 / 斐波那契（朴素双递归）/ 汉诺塔。
  * RecursionFrame.callStack 底→顶；返回值在帧上标注。
  */
-import type { CallFrameView, PegView } from '../../step/frame';
+import type { CallFrameView, PegView, RecursionFrame, RecursionTreeNodeView } from '../../step/frame';
 import type { VizStep } from '../../step/step';
 
 interface RecCtx {
@@ -11,6 +11,9 @@ interface RecCtx {
   pegs: PegView[] | null;
   lastMove: string | null;
   memo: { key: string; value: string }[] | null;
+  /** 递归树视图节点（仅 fibonacci 填充） */
+  treeNodes: RecursionTreeNodeView[];
+  treeCurrentId: string | null;
 }
 
 function makeRecEmit(ctx: RecCtx) {
@@ -21,8 +24,16 @@ function makeRecEmit(ctx: RecCtx) {
       pegs: ctx.pegs ? ctx.pegs.map((p) => ({ name: p.name, disks: [...p.disks] })) : null,
       lastMove: ctx.lastMove,
       memo: ctx.memo ? ctx.memo.map((m) => ({ ...m })) : null,
+      ...(ctx.treeNodes.length > 0
+        ? {
+            tree: {
+              nodes: ctx.treeNodes.map((n) => ({ ...n })),
+              currentId: ctx.treeCurrentId,
+            },
+          }
+        : {}),
       message,
-    },
+    } as RecursionFrame,
     description: message,
     pseudocodeLines: lines,
     counters: { ...ctx.counters },
@@ -32,6 +43,8 @@ function makeRecEmit(ctx: RecCtx) {
 function freshCtx(withPegs: boolean, withMemo: boolean): RecCtx {
   return {
     counters: { recursions: 0 },
+    treeNodes: [],
+    treeCurrentId: null,
     stack: [],
     pegs: withPegs
       ? [
@@ -121,9 +134,16 @@ export function* fibonacciGen(n: number): Generator<VizStep, void, void> {
     }
   };
 
-  function* fibRec(k: number): Generator<VizStep, number, void> {
+  function* fibRec(k: number, parentId: string | null): Generator<VizStep, number, void> {
     ctx.counters.recursions++;
-    ctx.stack.push({ id: `fib${ctx.counters.recursions}`, label: `fib(${k})`, state: 'active', returnValue: null });
+    const nodeId = `fib${ctx.counters.recursions}`;
+    ctx.stack.push({ id: nodeId, label: `fib(${k})`, state: 'active', returnValue: null });
+    ctx.treeNodes.push({ id: nodeId, label: `fib(${k})`, parent: parentId, state: 'active', returnValue: null });
+    ctx.treeCurrentId = nodeId;
+    // 父节点此刻处于 waiting（被子调用挂起）
+    for (const tn of ctx.treeNodes) {
+      if (tn.state === 'active' && tn.id !== nodeId) tn.state = 'waiting';
+    }
     syncViews();
     yield emit(`调用 fib(${k})`, [0, 2]);
 
@@ -133,10 +153,10 @@ export function* fibonacciGen(n: number): Generator<VizStep, void, void> {
       yield emit(`fib(${k})：n ≤ 2，基准情形直接返回 1`, [1]);
     } else {
       yield emit(`fib(${k})：先递归计算左子问题 fib(${k - 1})`, [2]);
-      const left = yield* fibRec(k - 1);
+      const left = yield* fibRec(k - 1, nodeId);
       syncViews();
       yield emit(`左子结果返回：fib(${k - 1}) = ${left}，再递归计算 fib(${k - 2})`, [2]);
-      const right = yield* fibRec(k - 2);
+      const right = yield* fibRec(k - 2, nodeId);
       syncViews();
       val = left + right;
       yield emit(`fib(${k}) = ${left} + ${right} = ${val}`, [2]);
@@ -145,12 +165,17 @@ export function* fibonacciGen(n: number): Generator<VizStep, void, void> {
     const top = ctx.stack[ctx.stack.length - 1];
     top.state = 'returned';
     top.returnValue = String(val);
+    const treeNode = ctx.treeNodes.find((tn) => tn.id === nodeId);
+    if (treeNode) {
+      treeNode.state = 'returned';
+      treeNode.returnValue = String(val);
+    }
     yield emit(`fib(${k}) = ${val}，返回给上层`, [2]);
     ctx.stack.pop();
     return val;
   }
 
-  const result = yield* fibRec(n);
+  const result = yield* fibRec(n, null);
   ctx.memo!.push({ key: `fib(${n})`, value: String(result) });
   yield emit(`计算完成：fib(${n}) = ${result}，共发生 ${ctx.counters.recursions} 次函数调用`, [2]);
 }
