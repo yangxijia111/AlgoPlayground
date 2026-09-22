@@ -521,12 +521,19 @@ function fromCompact(c: unknown): AlgorithmInput | null {
         nodes.push({ id, x, y });
       }
       const edges: { id: string; from: string; to: string; directed: boolean; weight: number }[] = [];
+      const seenEdgeIds = new Set<string>();
+      const seenPairs = new Set<string>();
       for (const e of o.e) {
         if (!Array.isArray(e) || e.length !== 5) return null;
         const [id, from, to, dir, w] = e as [unknown, unknown, unknown, unknown, unknown];
         if (typeof id !== 'string' || id === '' || id.length > 32) return null;
+        if (seenEdgeIds.has(id)) return null; // 边 id 唯一
+        seenEdgeIds.add(id);
         if (typeof from !== 'string' || typeof to !== 'string' || !seenIds.has(from) || !seenIds.has(to)) return null;
         if (from === to) return null; // 自环
+        const pairKey = dir === 1 ? `${from}>${to}` : [from, to].sort().join('-');
+        if (seenPairs.has(pairKey)) return null; // 重复边
+        seenPairs.add(pairKey);
         if (dir !== 0 && dir !== 1) return null;
         if (typeof w !== 'number' || !Number.isInteger(w) || w < 1 || w > 99) return null;
         edges.push({ id, from, to, directed: dir === 1, weight: w });
