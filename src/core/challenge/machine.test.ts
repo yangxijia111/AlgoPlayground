@@ -85,7 +85,7 @@ describe('submitAction 行为', () => {
 
   it('重复错误动作累计 mistakes', () => {
     const def = getChallengeDef('stack-ops')!;
-    let m = createMachine(def);
+    const m = createMachine(def);
     const before = m.mistakes;
     const wrong: ChallengeAction = { kind: 'op', op: 'pop' };
     let r = submitAction(m, wrong);
