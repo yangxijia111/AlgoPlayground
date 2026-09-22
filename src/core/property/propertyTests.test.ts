@@ -47,7 +47,7 @@ describe('Property：栈', () => {
   it('随机操作序列（≤30 步）下：reducer.next === Generator 终态，且 LIFO 参考一致', () => {
     fc.assert(
       fc.property(fc.array(stackOpArb, { maxLength: 30 }), stringListArb, (ops, initial) => {
-        let state = initial;
+        let state: string[] = initial;
         for (const op of ops) {
           const before = state;
           const r = applyLinearOperation(before, 'stack', op);
@@ -79,7 +79,7 @@ describe('Property：队列', () => {
   it('随机操作序列（≤30 步）下：reducer === Generator，且 FIFO 参考一致', () => {
     fc.assert(
       fc.property(fc.array(queueOpArb, { maxLength: 30 }), stringListArb, (ops, initial) => {
-        let state = initial;
+        let state: string[] = initial;
         for (const op of ops) {
           const before = state;
           const r = applyLinearOperation(before, 'queue', op);
@@ -120,7 +120,7 @@ describe('Property：链表', () => {
       );
     fc.assert(
       fc.property(fc.array(opArb, { maxLength: 20 }), stringListArb, (ops, initial) => {
-        let state = initial;
+        let state: string[] = initial;
         for (const op of ops) {
           const before = state;
           const r = applyLinkedListOperation(before, op);

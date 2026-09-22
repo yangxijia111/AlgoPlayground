@@ -214,8 +214,8 @@ describe('Metamorphic：图', () => {
         const dist = new Map(last.frame.nodes.map((nd) => [nd.id, nd.distance]));
         expect(dist.get(input.start!)).toBe(0);
         for (const e of input.graph.edges) {
-          const du = dist.get(e.from);
-          const dv = dist.get(e.to);
+          const du = dist.get(e.from) ?? null;
+          const dv = dist.get(e.to) ?? null;
           if (du === null || dv === null) continue; // 不可达
           expect(dv, `边 ${e.from}->${e.to}: dist[${e.to}]=${dv} > dist[${e.from}]+w=${du + e.weight}`).toBeLessThanOrEqual(du + e.weight);
           if (!e.directed) {

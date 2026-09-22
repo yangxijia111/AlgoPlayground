@@ -207,8 +207,9 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   // Share：挂载时解析 URL query 中的分享数据（无效则回退默认并提示一次）
   const [searchParams] = useSearchParams();
   const [shareNotice, setShareNotice] = useState<string | null>(null);
-  // 分享携带的步下标：新 steps 就绪后 seek（engine 依赖 steps.length 重建，须延后）
-  const pendingSeekRef = useRef<number | null>(null);
+  // 分享携带的步下标：新 steps 就绪后 seek（engine 依赖 steps.length 重建，须延后）。
+  // 用 state 而非 ref：StrictMode 双挂载会重建 engine，ref 版本会被提前消费导致 seek 丢失
+  const [pendingSeek, setPendingSeek] = useState<number | null>(null);
   const shareAppliedRef = useRef(false);
   useEffect(() => {
     if (shareAppliedRef.current) return;
@@ -241,7 +242,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     if (result.step !== null) {
       // clamp 到合法范围（s=25 但只有 18 步 → 17），不崩溃
       const clamped = Math.max(0, Math.min(result.step, Math.max(0, newSteps.length - 1)));
-      pendingSeekRef.current = clamped;
+      setPendingSeek(clamped);
       if (result.step !== clamped) {
         setShareNotice(`分享中的步数超出范围，已跳到第 ${clamped + 1} 步。`);
       }
@@ -249,13 +250,13 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 分享步恢复：新 steps + 新 engine 就绪后执行一次 seek
+  // 分享步恢复：新 steps + 新 engine 就绪后执行 seek（幂等，StrictMode 双跑安全）
   useEffect(() => {
-    if (pendingSeekRef.current === null) return;
-    const target = pendingSeekRef.current;
-    pendingSeekRef.current = null;
-    engine.seek(Math.max(0, Math.min(target, Math.max(0, steps.length - 1))));
-  }, [steps, engine]);
+    if (pendingSeek === null) return;
+    engine.seek(Math.max(0, Math.min(pendingSeek, Math.max(0, steps.length - 1))));
+    setPendingSeek(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSeek, steps, engine]);
 
   // 用户手动切换全局 Beginner 开关后，分享链接的 override 让位于用户选择
   const lastGlobalBeginnerRef = useRef(profile.settings.beginnerMode);
