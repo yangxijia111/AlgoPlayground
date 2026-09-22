@@ -39,7 +39,17 @@ export function* bfsGen(input: GraphInput): Generator<VizStep, void, void> {
     const u = queue.shift()!;
     ctx.counters.visits++;
     visited.push(u);
-    yield emit({ [u]: 'active' }, u, frontierOf(queue), 'queue', new Set(), new Set(), `节点 ${u} 出队并访问（访问序第 ${visited.length} 个）`, [3, 4]);
+    yield emit(
+      { [u]: 'active' },
+      u,
+      frontierOf(queue),
+      'queue',
+      new Set(),
+      new Set(),
+      `节点 ${u} 出队并访问（访问序第 ${visited.length} 个）`,
+      [3, 4],
+      { type: 'visit-node', nodeId: u, algorithm: 'bfs' },
+    );
     for (const nb of outNeighbors(graph, u)) {
       if (discovered.has(nb.to)) continue;
       discovered.add(nb.to);
@@ -57,6 +67,7 @@ export function* bfsGen(input: GraphInput): Generator<VizStep, void, void> {
         new Set(),
         `邻居 ${nb.to} 未发现：入队，dist[${nb.to}]=${ctx.dist[nb.to]}，pred[${nb.to}]=${u}，队列：[${queue.join(', ')}]`,
         [5, 6],
+        { type: 'frontier-add', nodeIds: [nb.to], container: 'queue' },
       );
     }
   }
@@ -100,7 +111,17 @@ export function* dfsGen(input: GraphInput): Generator<VizStep, void, void> {
     if (visited.includes(u)) continue;
     ctx.counters.visits++;
     visited.push(u);
-    yield emit({ [u]: 'active' }, u, frontierOf(stack), 'stack', new Set(), new Set(), `节点 ${u} 出栈并访问（访问序第 ${visited.length} 个）`, [3, 4]);
+    yield emit(
+      { [u]: 'active' },
+      u,
+      frontierOf(stack),
+      'stack',
+      new Set(),
+      new Set(),
+      `节点 ${u} 出栈并访问（访问序第 ${visited.length} 个）`,
+      [3, 4],
+      { type: 'visit-node', nodeId: u, algorithm: 'dfs' },
+    );
     const nbs = outNeighbors(graph, u).filter((nb) => !discovered.has(nb.to));
     if (nbs.length > 0) {
       ctx.counters.comparisons += nbs.length;
@@ -122,6 +143,7 @@ export function* dfsGen(input: GraphInput): Generator<VizStep, void, void> {
         new Set(),
         `${u} 的未发现邻居 ${nbs.map((nb) => nb.to).join(', ')} 按逆序压栈（保证按字母序访问），栈：[${stack.join(', ')}]`,
         [5, 6],
+        { type: 'frontier-add', nodeIds: nbs.map((nb) => nb.to), container: 'stack' },
       );
     }
   }

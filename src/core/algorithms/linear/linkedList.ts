@@ -6,6 +6,7 @@ import type { LinkedListInput } from '../../registry';
 import { structureFrame } from '../../step/frame';
 import type { ElementState, StructureNode } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void, void> {
   const c = { comparisons: 0, inserts: 0, removes: 0, visits: 0 };
@@ -17,11 +18,18 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
     vals = [...input.initial];
   }
 
-  const emit = (nodes: StructureNode[], pointers: Record<string, number | null>, message: string, lines: number[]): VizStep => ({
+  const emit = (
+    nodes: StructureNode[],
+    pointers: Record<string, number | null>,
+    message: string,
+    lines: number[],
+    semantic?: StepSemantic,
+  ): VizStep => ({
     frame: structureFrame('list', nodes, pointers, message),
     description: message,
     pseudocodeLines: lines,
     counters: { ...c },
+    ...(semantic ? { semantic } : {}),
   });
 
   const makeNodes = (list: string[], marks: Record<number, ElementState> = {}, prefix = 'l') =>
@@ -33,7 +41,10 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
       for (const v of input.initial) {
         vals = [...vals, v];
         c.inserts++;
-        yield emit(makeNodes(vals, { [vals.length - 1]: 'active' }), {}, `建立节点 ${v}，链接到表尾`, [1]);
+        yield emit(makeNodes(vals, { [vals.length - 1]: 'active' }), {}, `建立节点 ${v}，链接到表尾`, [1], {
+          type: 'list-node-create',
+          value: v,
+        });
       }
       yield emit(makeNodes(vals), {}, `建表完成：链表共 ${vals.length} 个节点`, [1]);
       return;
@@ -50,7 +61,11 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
         const marks: Record<number, ElementState> = {};
         for (let k = 0; k < i; k++) marks[k] = 'success';
         marks[i] = 'active';
-        yield emit(makeNodes(vals, marks), { curr: i }, `curr 访问节点 ${i}：值 ${vals[i]}`, [4, 5]);
+        yield emit(makeNodes(vals, marks), { curr: i }, `curr 访问节点 ${i}：值 ${vals[i]}`, [4, 5], {
+          type: 'list-visit',
+          index: i,
+          value: vals[i]!,
+        });
       }
       const allOk: Record<number, ElementState> = {};
       for (let k = 0; k < vals.length; k++) allOk[k] = 'success';
@@ -70,18 +85,30 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
         const marks: Record<number, ElementState> = {};
         for (let k = 0; k < i; k++) marks[k] = 'muted';
         marks[i] = 'active';
-        yield emit(makeNodes(vals, marks), { prev: i, curr: i + 1 < vals.length ? i + 1 : null }, `定位：prev 移动到节点 ${i}（值 ${vals[i]}）`, [7]);
+        yield emit(makeNodes(vals, marks), { prev: i, curr: i + 1 < vals.length ? i + 1 : null }, `定位：prev 移动到节点 ${i}（值 ${vals[i]}）`, [7], {
+          type: 'list-visit',
+          index: i,
+          value: vals[i]!,
+        });
       }
       if (pos === 0) {
         c.inserts++;
         const next = makeNodes(vals, {}, 'a');
-        yield emit([{ id: 'new', value, state: 'active' }, ...next], { curr: 1 <= vals.length ? 1 : null }, `${value} 将插入表头：新节点的 next 指向原头节点`, [8]);
+        yield emit([{ id: 'new', value, state: 'active' }, ...next], { curr: 1 <= vals.length ? 1 : null }, `${value} 将插入表头：新节点的 next 指向原头节点`, [8], {
+          type: 'list-insert',
+          position: pos,
+          value,
+        });
       } else {
         c.inserts++;
         const marks: Record<number, ElementState> = { [pos - 1]: 'success' };
         const next = makeNodes(vals, marks, 'a');
         const newNode: StructureNode = { id: 'new', value, state: 'active' };
-        yield emit([...next.slice(0, pos), newNode, ...next.slice(pos)], { prev: pos - 1 }, `新节点 ${value} 接入：prev.next 指向新节点，新节点.next 指向原后继`, [8]);
+        yield emit([...next.slice(0, pos), newNode, ...next.slice(pos)], { prev: pos - 1 }, `新节点 ${value} 接入：prev.next 指向新节点，新节点.next 指向原后继`, [8], {
+          type: 'list-insert',
+          position: pos,
+          value,
+        });
       }
       const finalVals = [...vals.slice(0, pos), value, ...vals.slice(pos)];
       yield emit(makeNodes(finalVals, {}, 'f'), { prev: null, curr: null }, `插入完成：链表长度变为 ${finalVals.length}`, [8]);
@@ -100,9 +127,17 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
         const marks: Record<number, ElementState> = {};
         for (let k = 0; k < i; k++) marks[k] = 'muted';
         marks[i] = 'active';
-        yield emit(makeNodes(vals, marks), { prev: i, curr: i + 1 < vals.length ? i + 1 : null }, `定位：prev 移动到节点 ${i}（值 ${vals[i]}）`, [10]);
+        yield emit(makeNodes(vals, marks), { prev: i, curr: i + 1 < vals.length ? i + 1 : null }, `定位：prev 移动到节点 ${i}（值 ${vals[i]}）`, [10], {
+          type: 'list-visit',
+          index: i,
+          value: vals[i]!,
+        });
       }
-      yield emit(makeNodes(vals, { [pos]: 'danger' }), { prev: pos > 0 ? pos - 1 : null }, `删除节点 ${pos}（值 ${vals[pos]}）：prev.next 将跳过它`, [11]);
+      yield emit(makeNodes(vals, { [pos]: 'danger' }), { prev: pos > 0 ? pos - 1 : null }, `删除节点 ${pos}（值 ${vals[pos]}）：prev.next 将跳过它`, [11], {
+        type: 'list-delete',
+        position: pos,
+        value: vals[pos]!,
+      });
       c.removes++;
       const finalVals = vals.filter((_, i) => i !== pos);
       yield emit(makeNodes(finalVals, {}, 'd'), { prev: null, curr: null }, `删除完成：${vals[pos]} 已移除，链表长度变为 ${finalVals.length}`, [11]);
@@ -116,7 +151,13 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
         const marks: Record<number, ElementState> = {};
         for (let k = 0; k < i; k++) marks[k] = 'muted';
         marks[i] = 'active';
-        yield emit(makeNodes(vals, marks), { curr: i }, `比较节点 ${i}：${vals[i]} ${vals[i] === op.value ? '=' : '≠'} ${op.value}`, [13]);
+        yield emit(makeNodes(vals, marks), { curr: i }, `比较节点 ${i}：${vals[i]} ${vals[i] === op.value ? '=' : '≠'} ${op.value}`, [13], {
+          type: 'list-compare',
+          index: i,
+          value: vals[i]!,
+          target: op.value,
+          equal: vals[i] === op.value,
+        });
         if (vals[i] === op.value) {
           const marks2: Record<number, ElementState> = { [i]: 'success' };
           yield emit(makeNodes(vals, marks2), { curr: i }, `找到目标！位置 ${i} 的值是 ${op.value}，共比较 ${c.comparisons} 次`, [13]);

@@ -5,6 +5,7 @@
 import type { GraphAlgorithm, GraphInput, GraphModel } from '../../registry';
 import type { ElementState, GraphEdgeView, GraphFrame, GraphNodeView } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 export interface AdjacentEdge {
   to: string;
@@ -32,6 +33,7 @@ export interface GraphEmit {
     okEdges: Set<string>,
     message: string,
     lines: number[],
+    semantic?: StepSemantic,
   ): VizStep;
 }
 
@@ -40,7 +42,7 @@ export function makeGraphEmit(
   _algorithm: GraphAlgorithm,
   ctx: { dist: Record<string, number | null>; pred: Record<string, string | null>; counters: Record<string, number> },
 ): GraphEmit {
-  return (states, current, frontier, frontierKind, activeEdges, okEdges, message, lines) => {
+  return (states, current, frontier, frontierKind, activeEdges, okEdges, message, lines, semantic) => {
     const nodes: GraphNodeView[] = graph.nodes.map((n) => ({
       id: n.id,
       x: n.x,
@@ -60,6 +62,7 @@ export function makeGraphEmit(
       description: message,
       pseudocodeLines: lines,
       counters: { ...ctx.counters },
+      ...(semantic ? { semantic } : {}),
     };
   };
 }

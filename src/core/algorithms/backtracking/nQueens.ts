@@ -3,6 +3,7 @@
  */
 import type { NQueensInput } from '../../registry';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 /** N 皇后伪代码：
  * 0 procedure solve(row)
@@ -21,7 +22,14 @@ export function* nQueensGen(input: NQueensInput): Generator<VizStep, void, void>
   const solutions: number[][] = [];
   const counters = { recursions: 0, backtracks: 0, solutions: 0 };
 
-  const emit = (tryingRow: number, tryingCol: number, attacking: boolean, message: string, lines: number[]): VizStep => ({
+  const emit = (
+    tryingRow: number,
+    tryingCol: number,
+    attacking: boolean,
+    message: string,
+    lines: number[],
+    semantic?: StepSemantic,
+  ): VizStep => ({
     frame: {
       kind: 'nqueens',
       n,
@@ -35,6 +43,7 @@ export function* nQueensGen(input: NQueensInput): Generator<VizStep, void, void>
     description: message,
     pseudocodeLines: lines,
     counters: { ...counters },
+    ...(semantic ? { semantic } : {}),
   });
 
   const conflictWith = (row: number, col: number): string | null => {
@@ -54,24 +63,50 @@ export function* nQueensGen(input: NQueensInput): Generator<VizStep, void, void>
     if (row === n) {
       solutions.push([...queens]);
       counters.solutions = solutions.length;
-      yield emit(-1, -1, false, `第 ${n} 行放置完成，找到一个解（第 ${solutions.length} 个）：[${queens.map((c) => c + 1).join(', ')}]`, [1]);
+      yield emit(
+        -1,
+        -1,
+        false,
+        `第 ${n} 行放置完成，找到一个解（第 ${solutions.length} 个）：[${queens.map((c) => c + 1).join(', ')}]`,
+        [1],
+        { type: 'solution-found', solution: [...queens] },
+      );
       return;
     }
     for (let col = 0; col < n; col++) {
       const why = conflictWith(row, col);
-      yield emit(row, col, why !== null, why !== null ? `尝试 (${row + 1}, ${col + 1})：冲突！${why}` : `尝试 (${row + 1}, ${col + 1})：安全`, [3, 4]);
+      yield emit(
+        row,
+        col,
+        why !== null,
+        why !== null ? `尝试 (${row + 1}, ${col + 1})：冲突！${why}` : `尝试 (${row + 1}, ${col + 1})：安全`,
+        [3, 4],
+        { type: 'try-place', row, col, conflict: why !== null, reason: why ?? undefined },
+      );
       if (why !== null) continue;
       queens[row] = col;
-      yield emit(row, col, false, `在第 ${row + 1} 行第 ${col + 1} 列放置皇后，递归处理第 ${row + 2} 行`, [5]);
+      yield emit(row, col, false, `在第 ${row + 1} 行第 ${col + 1} 列放置皇后，递归处理第 ${row + 2} 行`, [5], {
+        type: 'place',
+        row,
+        col,
+      });
       yield* solve(row + 1);
       queens[row] = -1;
       counters.backtracks++;
       if (row < n - 1) {
-        yield emit(row, col, false, `回退：移除第 ${row + 1} 行的皇后（第 ${col + 1} 列），尝试该行其他列`, [6]);
+        yield emit(row, col, false, `回退：移除第 ${row + 1} 行的皇后（第 ${col + 1} 列），尝试该行其他列`, [6], {
+          type: 'remove',
+          row,
+          col,
+        });
       }
     }
     if (row > 0) {
-      yield emit(row - 1, queens[row - 1], false, `第 ${row + 1} 行所有列都试过，回溯到第 ${row} 行`, [6]);
+      yield emit(row - 1, queens[row - 1] ?? -1, false, `第 ${row + 1} 行所有列都试过，回溯到第 ${row} 行`, [6], {
+        type: 'backtrack',
+        fromRow: row,
+        toRow: row - 1,
+      });
     }
   }
 

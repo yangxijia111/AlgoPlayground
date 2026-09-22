@@ -6,6 +6,7 @@ import type { BSTInput } from '../../registry';
 import { layoutTree } from './layout';
 import type { ElementState, TreeEdgeView, TreeNodeView } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 import type { BstNode } from './model';
 import { buildTree, findPath, insertNode, pathToMin, removeNode } from './model';
 
@@ -38,6 +39,7 @@ function makeTreeEmit(counters: Ctx['counters'], output: string[]) {
     activeEdges: Set<string>,
     message: string,
     lines: number[],
+    semantic?: StepSemantic,
   ): VizStep => {
     const layout = layoutTree(root);
     const nodes: TreeNodeView[] = layout.nodes.map((n) => ({
@@ -53,6 +55,7 @@ function makeTreeEmit(counters: Ctx['counters'], output: string[]) {
       description: message,
       pseudocodeLines: lines,
       counters: { ...counters },
+      ...(semantic ? { semantic } : {}),
     };
   };
 }
@@ -85,6 +88,13 @@ function* walkPath(
         ? `比较 ${value} 与节点 ${node.value}：相等，找到目标！`
         : `比较 ${value} 与节点 ${node.value}：${value} ${less ? '<' : '>'} ${node.value}，${dir}`,
       lines(hit, less),
+      {
+        type: 'tree-descend',
+        nodeId: node.id,
+        nodeValue: node.value,
+        query: value,
+        direction: hit ? 'hit' : i === 0 ? 'root' : less ? 'left' : 'right',
+      },
     );
     if (hit) return true;
   }
@@ -110,7 +120,11 @@ export function* bstOpsGen(input: BSTInput): Generator<VizStep, void, void> {
       seen.add(v);
       cur = insertNode(cur, v, nextId++);
       const placed = findPath(cur, v).at(-1)!;
-      yield emit(cur, { [placed.id]: 'special' }, new Set(), `插入 ${v}：按 BST 规则挂到空位`, [7]);
+      yield emit(cur, { [placed.id]: 'special' }, new Set(), `插入 ${v}：按 BST 规则挂到空位`, [7], {
+        type: 'tree-insert-place',
+        nodeId: placed.id,
+        value: v,
+      });
     }
     yield emit(cur, {}, new Set(), `建树完成：共 ${seen.size} 个节点，中序序列为升序`, [0]);
     return;
@@ -136,7 +150,11 @@ export function* bstOpsGen(input: BSTInput): Generator<VizStep, void, void> {
     // 挂到空位：重新插入一次（值不存在）
     const newRoot = insertNode(root, op.value, 1000);
     ctx.counters.visits++;
-    yield emit(newRoot, { 1000: 'special' }, new Set(), `到达空位：新建节点 ${op.value} 挂到此处`, [7]);
+    yield emit(newRoot, { 1000: 'special' }, new Set(), `到达空位：新建节点 ${op.value} 挂到此处`, [7], {
+      type: 'tree-insert-place',
+      nodeId: 1000,
+      value: op.value,
+    });
     yield emit(newRoot, {}, new Set(), `插入完成：树共 ${countAll(newRoot)} 个节点`, [7]);
     return;
   }
@@ -165,30 +183,55 @@ export function* bstOpsGen(input: BSTInput): Generator<VizStep, void, void> {
   }
   const target = findPath(root, op.value).at(-1)!;
   if (target.left === null && target.right === null) {
-    yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 是叶子，直接摘除`, [11]);
+    yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 是叶子，直接摘除`, [11], {
+      type: 'tree-delete',
+      value: op.value,
+      caseType: 'leaf',
+    });
     yield emit(removeNode(root, op.value), {}, new Set(), `删除完成：树共 ${countAll(removeNode(root, op.value))} 个节点`, [11]);
     return;
   }
   if (target.left === null || target.right === null) {
-    yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 只有一个孩子：用子树顶替它的位置`, [11]);
+    yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 只有一个孩子：用子树顶替它的位置`, [11], {
+      type: 'tree-delete',
+      value: op.value,
+      caseType: 'one-child',
+    });
     yield emit(removeNode(root, op.value), {}, new Set(), `删除完成：树共 ${countAll(removeNode(root, op.value))} 个节点`, [11]);
     return;
   }
   // 双子：中序后继
-  yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 有两个孩子：寻找中序后继（右子树最小值）`, [12]);
+  yield emit(root, { [target.id]: 'danger' }, new Set(), `节点 ${op.value} 有两个孩子：寻找中序后继（右子树最小值）`, [12], {
+    type: 'tree-delete',
+    value: op.value,
+    caseType: 'two-children',
+  });
   const sPath = pathToMin(target.right!);
   for (let i = 0; i < sPath.length; i++) {
     const node = sPath[i];
     const states: Record<number, ElementState> = { [target.id]: 'danger' };
     for (let k = 0; k < i; k++) states[sPath[k].id] = 'muted';
     states[node.id] = 'active';
+    // 后继下探是 delete 的内部过程（非目标值下降），作为 transition 不带语义
     yield emit(root, states, new Set(), `在右子树中下探：当前最小候选 ${node.value}`, [12]);
   }
   const successor = sPath.at(-1)!;
   // 用后继值替换目标值（可视化：目标节点值变为后继值，special 标记）
   const substituted: BstNode = { ...target, value: successor.value };
   const rootAfterSub = replaceNode(root, target.id, substituted);
-  yield emit(rootAfterSub, { [target.id]: 'special' }, new Set(), `用后继值 ${successor.value} 替换节点值，随后删除右子树中的后继节点`, [12]);
+  yield emit(
+    rootAfterSub,
+    { [target.id]: 'special' },
+    new Set(),
+    `用后继值 ${successor.value} 替换节点值，随后删除右子树中的后继节点`,
+    [12],
+    {
+      type: 'tree-delete',
+      value: op.value,
+      caseType: 'two-children',
+      successorValue: successor.value,
+    },
+  );
   yield emit(removeNode(rootAfterSub, successor.value), {}, new Set(), `删除完成：树共 ${countAll(removeNode(rootAfterSub, successor.value))} 个节点`, [12]);
 }
 

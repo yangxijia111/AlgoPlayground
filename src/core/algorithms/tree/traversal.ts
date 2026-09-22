@@ -6,6 +6,7 @@ import type { BSTInput, TraverseOrder } from '../../registry';
 import { layoutTree } from './layout';
 import type { ElementState, TreeEdgeView, TreeNodeView } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 import type { BstNode } from './model';
 import { buildTree } from './model';
 
@@ -40,11 +41,18 @@ interface TraversalCtx {
 }
 
 interface Emit {
-  (root: BstNode | null, current: number | null, queued: Set<number>, message: string, lines: number[]): VizStep;
+  (
+    root: BstNode | null,
+    current: number | null,
+    queued: Set<number>,
+    message: string,
+    lines: number[],
+    semantic?: StepSemantic,
+  ): VizStep;
 }
 
 function makeEmit(ctx: TraversalCtx): Emit {
-  return (root, current, queued, message, lines) => {
+  return (root, current, queued, message, lines, semantic) => {
     const layout = layoutTree(root);
     const nodes: TreeNodeView[] = layout.nodes.map((n) => {
       let state: ElementState = 'normal';
@@ -69,6 +77,7 @@ function makeEmit(ctx: TraversalCtx): Emit {
       description: message,
       pseudocodeLines: lines,
       counters: { ...ctx.counters },
+      ...(semantic ? { semantic } : {}),
     };
   };
 }
@@ -94,7 +103,14 @@ export function* traversalGen(input: BSTInput): Generator<VizStep, void, void> {
       ctx.counters.visits++;
       ctx.output.push(String(node.value));
       ctx.visited.add(node.id);
-      yield emit(root, node.id, new Set(), `${VISIT_LABELS[order]}节点 ${node.value}（当前输出：${ctx.output.join(', ')}）`, [1]);
+      yield emit(
+        root,
+        node.id,
+        new Set(),
+        `${VISIT_LABELS[order]}节点 ${node.value}（当前输出：${ctx.output.join(', ')}）`,
+        [1],
+        { type: 'tree-output', nodeId: node.id, value: node.value, order },
+      );
     }
     if (order === 'pre') yield* visit();
     if (node.left) yield* dfs(node.left, order);
@@ -115,20 +131,44 @@ export function* traversalGen(input: BSTInput): Generator<VizStep, void, void> {
       break;
     case 'level': {
       const queue: BstNode[] = [root];
-      yield emit(root, null, new Set([root.id]), `根节点 ${root.value} 入队，队列：[${root.value}]`, [5]);
+      yield emit(root, null, new Set([root.id]), `根节点 ${root.value} 入队，队列：[${root.value}]`, [5], {
+        type: 'tree-enqueue',
+        value: root.value,
+      });
       while (queue.length > 0) {
         const node = queue.shift()!;
         ctx.counters.visits++;
         ctx.output.push(String(node.value));
         ctx.visited.add(node.id);
-        yield emit(root, node.id, new Set(queue.map((q) => q.id)), `节点 ${node.value} 出队并访问（输出：${ctx.output.join(', ')}）`, [6]);
+        yield emit(
+          root,
+          node.id,
+          new Set(queue.map((q) => q.id)),
+          `节点 ${node.value} 出队并访问（输出：${ctx.output.join(', ')}）`,
+          [6],
+          { type: 'tree-output', nodeId: node.id, value: node.value, order: 'level' },
+        );
         if (node.left) {
           queue.push(node.left);
-          yield emit(root, node.id, new Set(queue.map((q) => q.id)), `左孩子 ${node.left.value} 入队，队列：[${queue.map((q) => q.value).join(', ')}]`, [6]);
+          yield emit(
+            root,
+            node.id,
+            new Set(queue.map((q) => q.id)),
+            `左孩子 ${node.left.value} 入队，队列：[${queue.map((q) => q.value).join(', ')}]`,
+            [6],
+            { type: 'tree-enqueue', value: node.left.value },
+          );
         }
         if (node.right) {
           queue.push(node.right);
-          yield emit(root, node.id, new Set(queue.map((q) => q.id)), `右孩子 ${node.right.value} 入队，队列：[${queue.map((q) => q.value).join(', ')}]`, [6]);
+          yield emit(
+            root,
+            node.id,
+            new Set(queue.map((q) => q.id)),
+            `右孩子 ${node.right.value} 入队，队列：[${queue.map((q) => q.value).join(', ')}]`,
+            [6],
+            { type: 'tree-enqueue', value: node.right.value },
+          );
         }
       }
       break;

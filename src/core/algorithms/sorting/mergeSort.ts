@@ -91,50 +91,75 @@ function* mergeRange(
   });
   let k = lo;
   while (i <= mid && j <= hi) {
-    const lv = aux[i - lo];
-    const rv = aux[j - lo];
+    const lv = aux[i - lo]!;
+    const rv = aux[j - lo]!;
     c.comparisons++;
-    yield emit(`比较左半 a[${i}]=${lv} 与右半 a[${j}]=${rv}`, [8, 9], {
-      range: [lo, hi],
-      comparing: [i, j],
-      pointers: { i, j, write: k },
-    });
+    yield emit(
+      `比较左半 a[${i}]=${lv} 与右半 a[${j}]=${rv}`,
+      [8, 9],
+      {
+        range: [lo, hi],
+        comparing: [i, j],
+        pointers: { i, j, write: k },
+      },
+      { type: 'compare', indices: [i, j], values: [lv, rv], purpose: 'merge-sides' },
+    );
     if (lv <= rv) {
       arr[k] = lv;
       c.writes++;
-      yield emit(`${arr[k]}（左半）较小，写入位置 ${k}，i++`, [10], {
-        range: [lo, hi],
-        pointers: { i: i + 1, j, write: k },
-      });
+      yield emit(
+        `${arr[k]}（左半）较小，写入位置 ${k}，i++`,
+        [10],
+        {
+          range: [lo, hi],
+          pointers: { i: i + 1, j, write: k },
+        },
+        { type: 'write', index: k, value: lv, source: 'merge-left' },
+      );
       i++;
     } else {
       arr[k] = rv;
       c.writes++;
-      yield emit(`${arr[k]}（右半）较小，写入位置 ${k}，j++`, [12], {
-        range: [lo, hi],
-        pointers: { i, j: j + 1, write: k },
-      });
+      yield emit(
+        `${arr[k]}（右半）较小，写入位置 ${k}，j++`,
+        [12],
+        {
+          range: [lo, hi],
+          pointers: { i, j: j + 1, write: k },
+        },
+        { type: 'write', index: k, value: rv, source: 'merge-right' },
+      );
       j++;
     }
     k++;
   }
   while (i <= mid) {
-    arr[k] = aux[i - lo];
+    arr[k] = aux[i - lo]!;
     c.writes++;
-    yield emit(`左半剩余元素 ${arr[k]} 写入位置 ${k}`, [13], {
-      range: [lo, hi],
-      pointers: { i, write: k },
-    });
+    yield emit(
+      `左半剩余元素 ${arr[k]} 写入位置 ${k}`,
+      [13],
+      {
+        range: [lo, hi],
+        pointers: { i, write: k },
+      },
+      { type: 'write', index: k, value: aux[i - lo]!, source: 'merge-left' },
+    );
     i++;
     k++;
   }
   while (j <= hi) {
-    arr[k] = aux[j - lo];
+    arr[k] = aux[j - lo]!;
     c.writes++;
-    yield emit(`右半剩余元素 ${arr[k]} 写入位置 ${k}`, [13], {
-      range: [lo, hi],
-      pointers: { j, write: k },
-    });
+    yield emit(
+      `右半剩余元素 ${arr[k]} 写入位置 ${k}`,
+      [13],
+      {
+        range: [lo, hi],
+        pointers: { j, write: k },
+      },
+      { type: 'write', index: k, value: aux[j - lo]!, source: 'merge-right' },
+    );
     j++;
     k++;
   }

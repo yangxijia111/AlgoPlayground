@@ -1,10 +1,12 @@
 /**
  * 排序算法共享工具：计数器与步骤发射器。
  * 约定：所有排序算法的 counters 键集固定为 { comparisons, swaps, writes }。
+ * P11：发射器支持携带 StepSemantic（SEMANTIC_STEP_SPEC）。
  */
 import { arrayFrame } from '../../step/frame';
 import type { ArrayFrame } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 export interface SortCounters {
   comparisons: number;
@@ -13,7 +15,7 @@ export interface SortCounters {
 }
 
 export interface SortEmit {
-  (description: string, pseudocodeLines: number[], extra?: Partial<ArrayFrame>): VizStep;
+  (description: string, pseudocodeLines: number[], extra?: Partial<ArrayFrame>, semantic?: StepSemantic): VizStep;
 }
 
 /**
@@ -25,7 +27,7 @@ export function makeSortEmitter(
   sortedFlags: boolean[],
   counters: SortCounters,
 ): SortEmit {
-  return (description, pseudocodeLines, extra = {}) => {
+  return (description, pseudocodeLines, extra = {}, semantic) => {
     const sorted: number[] = [];
     for (let i = 0; i < sortedFlags.length; i++) {
       if (sortedFlags[i]) sorted.push(i);
@@ -35,6 +37,7 @@ export function makeSortEmitter(
       description,
       pseudocodeLines,
       counters: { ...counters },
+      ...(semantic ? { semantic } : {}),
     };
   };
 }

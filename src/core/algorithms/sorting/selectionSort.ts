@@ -39,11 +39,16 @@ export function* selectionSortGen(input: SortInput): Generator<VizStep, void, vo
     });
     for (let j = i + 1; j < n; j++) {
       c.comparisons++;
-      yield emit(`比较 a[${j}]=${arr[j]} 与当前最小值 a[${min}]=${arr[min]}`, [4, 5], {
-        range: [i, n - 1],
-        comparing: [j, min],
-        pointers: { min, j },
-      });
+      yield emit(
+        `比较 a[${j}]=${arr[j]} 与当前最小值 a[${min}]=${arr[min]}`,
+        [4, 5],
+        {
+          range: [i, n - 1],
+          comparing: [j, min],
+          pointers: { min, j },
+        },
+        { type: 'compare', indices: [j, min], values: [arr[j]!, arr[min]!], purpose: 'selection-min' },
+      );
       if (arr[j] < arr[min]) {
         min = j;
         yield emit(`a[${j}]=${arr[j]} 更小，更新 min=${j}`, [6], {
@@ -53,13 +58,18 @@ export function* selectionSortGen(input: SortInput): Generator<VizStep, void, vo
       }
     }
     if (min !== i) {
-      const before = `${arr[i]} 与 ${arr[min]}`;
+      const before: [number, number] = [arr[i]!, arr[min]!];
       swapAt(arr, i, min);
       c.swaps++;
-      yield emit(`本轮最小值为 ${arr[i]}，交换 a[${i}] 与 a[${min}]（原值 ${before}）`, [7, 8], {
-        swapping: [i, min],
-        range: [i, n - 1],
-      });
+      yield emit(
+        `本轮最小值为 ${arr[i]}，交换 a[${i}] 与 a[${min}]（原值 ${before[0]} 与 ${before[1]}）`,
+        [7, 8],
+        {
+          swapping: [i, min],
+          range: [i, n - 1],
+        },
+        { type: 'swap', indices: [i, min], values: before, reason: 'selection-place-min' },
+      );
     } else {
       yield emit(`a[${i}]=${arr[i]} 本就是未排序区最小值，无需交换`, [7], {
         range: [i, n - 1],

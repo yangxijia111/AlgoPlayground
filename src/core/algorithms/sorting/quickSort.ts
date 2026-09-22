@@ -58,32 +58,47 @@ function* quickRec(
   }
 
   // partition(A, lo, hi)
-  const pivot = arr[hi];
+  const pivot = arr[hi]!;
   let i = lo;
-  yield emit(`对区间 [${lo}..${hi}] 分区：pivot = a[${hi}] = ${pivot}，i ← ${lo}`, [5, 6, 7], {
-    pivot: hi,
-    range: [lo, hi],
-    pointers: { i, j: lo },
-  });
-  for (let j = lo; j < hi; j++) {
-    c.comparisons++;
-    yield emit(`比较 a[${j}]=${arr[j]} 与 pivot=${pivot}`, [8, 9], {
+  yield emit(
+    `对区间 [${lo}..${hi}] 分区：pivot = a[${hi}] = ${pivot}，i ← ${lo}`,
+    [5, 6, 7],
+    {
       pivot: hi,
       range: [lo, hi],
-      comparing: [j],
-      pointers: { i, j },
-    });
+      pointers: { i, j: lo },
+    },
+    { type: 'pivot-select', index: hi, value: pivot, strategy: 'last-element' },
+  );
+  for (let j = lo; j < hi; j++) {
+    c.comparisons++;
+    yield emit(
+      `比较 a[${j}]=${arr[j]} 与 pivot=${pivot}`,
+      [8, 9],
+      {
+        pivot: hi,
+        range: [lo, hi],
+        comparing: [j],
+        pointers: { i, j },
+      },
+      { type: 'compare', indices: [j, hi], values: [arr[j]!, pivot], purpose: 'quick-scan' },
+    );
     if (arr[j] < pivot) {
       if (i !== j) {
-        const before = `${arr[i]} 与 ${arr[j]}`;
+        const before: [number, number] = [arr[i]!, arr[j]!];
         swapAt(arr, i, j);
         c.swaps++;
-        yield emit(`a[${j}] < pivot：交换 a[${i}] 与 a[${j}]（原值 ${before}），i ← ${i + 1}`, [10, 11], {
-          pivot: hi,
-          range: [lo, hi],
-          swapping: [i, j],
-          pointers: { i: i + 1, j },
-        });
+        yield emit(
+          `a[${j}] < pivot：交换 a[${i}] 与 a[${j}]（原值 ${before[0]} 与 ${before[1]}），i ← ${i + 1}`,
+          [10, 11],
+          {
+            pivot: hi,
+            range: [lo, hi],
+            swapping: [i, j],
+            pointers: { i: i + 1, j },
+          },
+          { type: 'swap', indices: [i, j], values: before, reason: 'quick-partition' },
+        );
       } else {
         yield emit(`a[${j}] < pivot：已在 pivot 左侧，i ← ${i + 1}`, [10, 11], {
           pivot: hi,
@@ -96,14 +111,19 @@ function* quickRec(
     }
   }
   if (i !== hi) {
-    const before = `${arr[i]} 与 ${arr[hi]}`;
+    const before: [number, number] = [arr[i]!, arr[hi]!];
     swapAt(arr, i, hi);
     c.swaps++;
     sortedFlags[i] = true;
-    yield emit(`扫描结束：pivot=${arr[i]} 与 a[${i}] 交换落位（原值 ${before}）`, [12, 13], {
-      swapping: [i, hi],
-      range: [lo, hi],
-    });
+    yield emit(
+      `扫描结束：pivot=${arr[i]} 与 a[${i}] 交换落位（原值 ${before[0]} 与 ${before[1]}）`,
+      [12, 13],
+      {
+        swapping: [i, hi],
+        range: [lo, hi],
+      },
+      { type: 'swap', indices: [i, hi], values: before, reason: 'quick-pivot-place' },
+    );
   } else {
     sortedFlags[i] = true;
     yield emit(`扫描结束：pivot=${pivot} 本就在分界位置 ${i} 落位`, [12, 13], {

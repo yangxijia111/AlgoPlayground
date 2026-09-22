@@ -37,17 +37,23 @@ export function* bubbleSortGen(input: SortInput): Generator<VizStep, void, void>
     yield emit(`开始新一轮扫描（未排序区 a[0..${unsortedLen - 1}]）`, [2, 3, 4]);
     for (let i = 0; i < unsortedLen - 1; i++) {
       c.comparisons++;
-      yield emit(`比较 a[${i}]=${arr[i]} 与 a[${i + 1}]=${arr[i + 1]}`, [5], {
-        comparing: [i, i + 1],
-      });
+      yield emit(
+        `比较 a[${i}]=${arr[i]} 与 a[${i + 1}]=${arr[i + 1]}`,
+        [5],
+        { comparing: [i, i + 1] },
+        { type: 'compare', indices: [i, i + 1], values: [arr[i]!, arr[i + 1]!], purpose: 'bubble-adjacent' },
+      );
       if (arr[i] > arr[i + 1]) {
-        const before = `${arr[i]} 与 ${arr[i + 1]}`;
+        const before: [number, number] = [arr[i]!, arr[i + 1]!];
         swapAt(arr, i, i + 1);
         c.swaps++;
         swapped = true;
-        yield emit(`因为 ${before}（前者更大），交换 a[${i}] 与 a[${i + 1}]`, [6, 7], {
-          swapping: [i, i + 1],
-        });
+        yield emit(
+          `因为 ${before[0]} 与 ${before[1]}（前者更大），交换 a[${i}] 与 a[${i + 1}]`,
+          [6, 7],
+          { swapping: [i, i + 1] },
+          { type: 'swap', indices: [i, i + 1], values: before, reason: 'bubble-order' },
+        );
       }
     }
     unsortedLen--;

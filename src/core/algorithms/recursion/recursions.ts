@@ -4,6 +4,7 @@
  */
 import type { CallFrameView, PegView, RecursionFrame, RecursionTreeNodeView } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 interface RecCtx {
   counters: { recursions: number };
@@ -17,7 +18,7 @@ interface RecCtx {
 }
 
 function makeRecEmit(ctx: RecCtx) {
-  return (message: string, lines: number[]): VizStep => ({
+  return (message: string, lines: number[], semantic?: StepSemantic): VizStep => ({
     frame: {
       kind: 'recursion',
       callStack: ctx.stack.map((f) => ({ ...f })),
@@ -37,6 +38,7 @@ function makeRecEmit(ctx: RecCtx) {
     description: message,
     pseudocodeLines: lines,
     counters: { ...ctx.counters },
+    ...(semantic ? { semantic } : {}),
   });
 }
 
@@ -85,13 +87,20 @@ export function* factorialGen(n: number): Generator<VizStep, void, void> {
       if (ctx.stack[i].state !== 'returned') ctx.stack[i].state = 'waiting';
     }
     if (k === 1) {
-      yield emit(`调用 fact(1)：n ≤ 1，到达基准情形，返回 1`, [1]);
+      yield emit(`调用 fact(1)：n ≤ 1，到达基准情形，返回 1`, [1], {
+        type: 'call',
+        label: `fact(1)`,
+        note: '基准情形',
+      });
       const base = ctx.stack[ctx.stack.length - 1];
       base.state = 'returned';
       base.returnValue = '1';
-      yield emit(`fact(1) = 1，开始逐层返回`, [1]);
+      yield emit(`fact(1) = 1，开始逐层返回`, [1], { type: 'return', label: 'fact(1)', value: '1' });
     } else {
-      yield emit(`调用 fact(${k})：需要 fact(${k - 1}) 的结果，当前调用挂起等待`, [2]);
+      yield emit(`调用 fact(${k})：需要 fact(${k - 1}) 的结果，当前调用挂起等待`, [2], {
+        type: 'call',
+        label: `fact(${k})`,
+      });
     }
   }
 
@@ -106,7 +115,7 @@ export function* factorialGen(n: number): Generator<VizStep, void, void> {
     prev = val;
     top.returnValue = String(val);
     top.state = 'returned';
-    yield emit(`fact(${k}) = ${val}，继续向上返回`, [2]);
+    yield emit(`fact(${k}) = ${val}，继续向上返回`, [2], { type: 'return', label: `fact(${k})`, value: String(val) });
   }
   ctx.stack.pop(); // 弹出最外层
   yield emit(`计算完成：fact(${n}) = ${prev}`, [2]);
@@ -145,11 +154,12 @@ export function* fibonacciGen(n: number): Generator<VizStep, void, void> {
       if (tn.state === 'active' && tn.id !== nodeId) tn.state = 'waiting';
     }
     syncViews();
-    yield emit(`调用 fib(${k})`, [0, 2]);
+    yield emit(`调用 fib(${k})`, [0, 2], { type: 'call', label: `fib(${k})` });
 
     let val: number;
     if (k <= 2) {
       val = 1;
+      // 基准情形说明（transition）：真正的 return 语义在「返回给上层」步
       yield emit(`fib(${k})：n ≤ 2，基准情形直接返回 1`, [1]);
     } else {
       yield emit(`fib(${k})：先递归计算左子问题 fib(${k - 1})`, [2]);
@@ -170,7 +180,7 @@ export function* fibonacciGen(n: number): Generator<VizStep, void, void> {
       treeNode.state = 'returned';
       treeNode.returnValue = String(val);
     }
-    yield emit(`fib(${k}) = ${val}，返回给上层`, [2]);
+    yield emit(`fib(${k}) = ${val}，返回给上层`, [2], { type: 'return', label: `fib(${k})`, value: String(val) });
     ctx.stack.pop();
     return val;
   }
@@ -203,19 +213,31 @@ export function* hanoiGen(n: number): Generator<VizStep, void, void> {
     for (let i = 0; i < ctx.stack.length - 1; i++) {
       if (ctx.stack[i].state !== 'returned') ctx.stack[i].state = 'waiting';
     }
-    yield emit(`调用 hanoi(${k})：把 ${k} 个盘从 ${from} 移到 ${to}（借助 ${via}）`, [0, 2]);
+    yield emit(`调用 hanoi(${k})：把 ${k} 个盘从 ${from} 移到 ${to}（借助 ${via}）`, [0, 2], {
+      type: 'call',
+      label: `hanoi(${k}, ${from}→${to})`,
+    });
     yield* rec(k - 1, from, via, to, depth + 1);
     const fromPeg = ctx.pegs!.find((p) => p.name === from)!;
     const toPeg = ctx.pegs!.find((p) => p.name === to)!;
     fromPeg.disks.pop();
     toPeg.disks.push(k);
     ctx.lastMove = `盘 ${k}: ${from} → ${to}`;
-    yield emit(`移动盘 ${k}：${from} → ${to}（${from} 柱顶 → ${to} 柱顶）`, [3]);
+    yield emit(`移动盘 ${k}：${from} → ${to}（${from} 柱顶 → ${to} 柱顶）`, [3], {
+      type: 'move',
+      disk: k,
+      from,
+      to,
+    });
     yield* rec(k - 1, via, to, from, depth + 1);
     const top = ctx.stack[ctx.stack.length - 1];
     top.state = 'returned';
     top.returnValue = '完成';
-    yield emit(`hanoi(${k}, ${from}→${to}) 完成，返回上层`, [4]);
+    yield emit(`hanoi(${k}, ${from}→${to}) 完成，返回上层`, [4], {
+      type: 'return',
+      label: `hanoi(${k}, ${from}→${to})`,
+      value: '完成',
+    });
     ctx.stack.pop();
   }
 

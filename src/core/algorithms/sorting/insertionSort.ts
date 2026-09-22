@@ -45,20 +45,32 @@ export function* insertionSortGen(input: SortInput): Generator<VizStep, void, vo
     let placed = false;
     while (j >= 0) {
       c.comparisons++;
-      yield emit(`比较 a[${j}]=${arr[j]} 与 key=${key}`, [5], {
-        range: [0, i],
-        comparing: [j],
-        pointers: { key: i, j },
-      });
+      yield emit(
+        `比较 a[${j}]=${arr[j]} 与 key=${key}`,
+        [5],
+        {
+          range: [0, i],
+          comparing: [j],
+          pointers: { key: i, j },
+        },
+        { type: 'compare', indices: [j], values: [arr[j]!], purpose: 'insertion-shift' },
+      );
       if (arr[j] > key) {
         arr[j + 1] = arr[j];
         c.writes++;
+        const writtenTo = j + 1; // 写入位置（原 j+1）
+        const writtenValue = arr[writtenTo]!;
         j--;
-        yield emit(`a[${j + 1}]=${arr[j + 1]} > key=${key}，将它后移一位，j ← ${j}`, [6, 7], {
-          range: [0, i],
-          swapping: [j + 1, j + 2],
-          pointers: { key: i, j },
-        });
+        yield emit(
+          `a[${writtenTo}]=${writtenValue} > key=${key}，将它后移一位，j ← ${j}`,
+          [6, 7],
+          {
+            range: [0, i],
+            swapping: [j + 1, j + 2],
+            pointers: { key: i, j },
+          },
+          { type: 'write', index: writtenTo, value: writtenValue, source: 'insertion-shift' },
+        );
       } else {
         yield emit(`a[${j}]=${arr[j]} ≤ key=${key}，后移结束`, [5], {
           range: [0, i],
@@ -72,14 +84,24 @@ export function* insertionSortGen(input: SortInput): Generator<VizStep, void, vo
     c.writes++;
     sortedFlags[i] = true;
     if (!placed) {
-      yield emit(`key=${key} 比有序前缀中所有元素都小，插入到位置 0`, [8], {
-        range: [0, i],
-        pointers: { key: 0 },
-      });
+      yield emit(
+        `key=${key} 比有序前缀中所有元素都小，插入到位置 0`,
+        [8],
+        {
+          range: [0, i],
+          pointers: { key: 0 },
+        },
+        { type: 'write', index: 0, value: key, source: 'insertion-place' },
+      );
     } else {
-      yield emit(`将 key=${key} 插入位置 ${j + 1}，有序前缀扩展为 a[0..${i}]`, [8], {
-        pointers: { key: j + 1 },
-      });
+      yield emit(
+        `将 key=${key} 插入位置 ${j + 1}，有序前缀扩展为 a[0..${i}]`,
+        [8],
+        {
+          pointers: { key: j + 1 },
+        },
+        { type: 'write', index: j + 1, value: key, source: 'insertion-place' },
+      );
     }
   }
 

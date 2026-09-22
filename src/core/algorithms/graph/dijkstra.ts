@@ -78,6 +78,7 @@ export function* dijkstraGen(input: GraphInput): Generator<VizStep, void, void> 
       new Set(),
       `选取未确定集中距离最小的节点 ${u}（dist=${du}），将其标记为已确定`,
       [3, 4],
+      { type: 'graph-finalize', nodeId: u, distance: du },
     );
     if (end !== null && u === end) {
       // 提前结束：回溯路径
@@ -127,6 +128,15 @@ export function* dijkstraGen(input: GraphInput): Generator<VizStep, void, void> 
           new Set(),
           `松弛边 ${u}→${nb.to}（w=${nb.weight}）：dist[${u}]+${nb.weight}=${candidate} < ${dv === null ? '∞' : dv}，更新 dist[${nb.to}]=${candidate}，pred[${nb.to}]=${u}`,
           [5, 6, 7],
+          {
+            type: 'graph-relax',
+            from: u,
+            to: nb.to,
+            weight: nb.weight,
+            oldDistance: dv,
+            newDistance: candidate,
+            predecessor: u,
+          },
         );
       } else {
         yield emit(
@@ -138,6 +148,14 @@ export function* dijkstraGen(input: GraphInput): Generator<VizStep, void, void> 
           new Set(),
           `考察边 ${u}→${nb.to}（w=${nb.weight}）：dist[${u}]+${nb.weight}=${candidate} ≥ dist[${nb.to}]=${dv}，不更新`,
           [5, 6],
+          {
+            type: 'graph-examine',
+            from: u,
+            to: nb.to,
+            weight: nb.weight,
+            oldDistance: dv ?? 0,
+            candidate,
+          },
         );
       }
     }

@@ -3,6 +3,7 @@
  */
 import type { DPFrame } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 const makeEmit = (
   rowHeaders: string[],
@@ -17,6 +18,7 @@ const makeEmit = (
     message: string,
     lines: number[],
     transition?: DPFrame['transition'],
+    semantic?: StepSemantic,
   ): VizStep => {
     const frame: DPFrame = {
       kind: 'dp',
@@ -29,7 +31,13 @@ const makeEmit = (
       extras: { label: extras.label, items: [...extras.items] },
       ...(transition ? { transition } : {}),
     };
-    return { frame, description: message, pseudocodeLines: lines, counters: { ...counters } };
+    return {
+      frame,
+      description: message,
+      pseudocodeLines: lines,
+      counters: { ...counters },
+      ...(semantic ? { semantic } : {}),
+    };
   };
 
 // ---------------------------------------------------------------------------
@@ -54,11 +62,27 @@ export function* fibDPGen(n: number): Generator<VizStep, void, void> {
   yield emit(cells, null, [], `初始状态：长度 ${n} 的 DP 表，从左到右填充`, [0]);
   cells[idx(1)] = 1;
   counters.fills++;
-  yield emit(cells, idx(1), [], `基准：dp[1] = 1`, [1]);
+  yield emit(cells, idx(1), [], `基准：dp[1] = 1`, [1], undefined, {
+    type: 'dp-fill',
+    cell: idx(1),
+    row: 0,
+    col: idx(1),
+    dependencies: [],
+    value: 1,
+    choice: 'base',
+  });
   if (n >= 2) {
     cells[idx(2)] = 1;
     counters.fills++;
-    yield emit(cells, idx(2), [], `基准：dp[2] = 1`, [1]);
+    yield emit(cells, idx(2), [], `基准：dp[2] = 1`, [1], undefined, {
+      type: 'dp-fill',
+      cell: idx(2),
+      row: 0,
+      col: idx(2),
+      dependencies: [],
+      value: 1,
+      choice: 'base',
+    });
     for (let i = 3; i <= n; i++) {
       const dep = [idx(i - 1), idx(i - 2)];
       cells[idx(i)] = (cells[idx(i - 1)] as number) + (cells[idx(i - 2)] as number);
@@ -74,6 +98,15 @@ export function* fibDPGen(n: number): Generator<VizStep, void, void> {
             { label: `dp[${i - 2}]`, value: cells[idx(i - 2)] as number },
           ],
           chosen: '两者相加：当前值由最近两个子问题唯一确定',
+        },
+        {
+          type: 'dp-fill',
+          cell: idx(i),
+          row: 0,
+          col: idx(i),
+          dependencies: dep,
+          value: cells[idx(i)]!,
+          choice: 'sum',
         },
       );
     }
@@ -153,6 +186,15 @@ export function* knapsackGen(items: { name: string; weight: number; value: numbe
           formula: 'dp[i][w] = max(dp[i-1][w], dp[i-1][w-wt[i]] + val[i])',
           candidates,
           chosen: take === null ? '容量不足，只能不选该物品' : take > notTake ? `选 ${it.name} 更优` : '不选更优（或相同）',
+        },
+        {
+          type: 'dp-fill',
+          cell: idx(i, w),
+          row: i,
+          col: w,
+          dependencies: deps,
+          value: best,
+          choice: take !== null && take > notTake ? 'take' : 'skip',
         },
       );
     }

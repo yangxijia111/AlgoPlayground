@@ -6,18 +6,26 @@ import type { LinearInput } from '../../registry';
 import { structureFrame } from '../../step/frame';
 import type { ElementState, StructureNode } from '../../step/frame';
 import type { VizStep } from '../../step/step';
+import type { StepSemantic } from '../../step/semantic';
 
 /** 线性结构容量上限（REQUIREMENTS FR-3.3） */
 export const LINEAR_CAPACITY = 12;
 
-type Emit = (nodes: StructureNode[], pointers: Record<string, number | null>, message: string, lines: number[]) => VizStep;
+type Emit = (
+  nodes: StructureNode[],
+  pointers: Record<string, number | null>,
+  message: string,
+  lines: number[],
+  semantic?: StepSemantic,
+) => VizStep;
 
 function makeEmit(counters: Record<string, number>, layout: 'stack' | 'queue'): Emit {
-  return (nodes, pointers, message, lines) => ({
+  return (nodes, pointers, message, lines, semantic) => ({
     frame: structureFrame(layout, nodes, pointers, message),
     description: message,
     pseudocodeLines: lines,
     counters: { ...counters },
+    ...(semantic ? { semantic } : {}),
   });
 }
 
@@ -36,23 +44,40 @@ export function* stackGen(input: LinearInput): Generator<VizStep, void, void> {
     case 'push': {
       yield emit(makeNodes(vals), topPtr(vals), `初始栈（${vals.length} 个元素），准备将 ${op.value} 入栈`, [0]);
       if (vals.length >= LINEAR_CAPACITY) {
-        yield emit(makeNodes(vals), topPtr(vals), `栈已满（容量 ${LINEAR_CAPACITY}）！入栈操作被拒绝`, [1]);
+        yield emit(makeNodes(vals), topPtr(vals), `栈已满（容量 ${LINEAR_CAPACITY}）！入栈操作被拒绝`, [1], {
+          type: 'push',
+          value: op.value,
+          rejected: true,
+        });
         return;
       }
       vals = [...vals, op.value];
       c.inserts++;
-      yield emit(makeNodes(vals, { [vals.length - 1]: 'active' }), topPtr(vals), `${op.value} 入栈，成为新的栈顶`, [2]);
+      yield emit(
+        makeNodes(vals, { [vals.length - 1]: 'active' }),
+        topPtr(vals),
+        `${op.value} 入栈，成为新的栈顶`,
+        [2],
+        { type: 'push', value: op.value },
+      );
       yield emit(makeNodes(vals), topPtr(vals), `入栈完成：栈顶 top 指向 ${vals[vals.length - 1]}`, [3]);
       return;
     }
     case 'pop': {
       yield emit(makeNodes(vals), topPtr(vals), `初始栈（${vals.length} 个元素），准备出栈`, [4]);
       if (vals.length === 0) {
-        yield emit(makeNodes(vals), topPtr(vals), '栈为空！出栈操作被拒绝', [5]);
+        yield emit(makeNodes(vals), topPtr(vals), '栈为空！出栈操作被拒绝', [5], {
+          type: 'pop',
+          value: null,
+          rejected: true,
+        });
         return;
       }
-      const popped = vals[vals.length - 1];
-      yield emit(makeNodes(vals, { [vals.length - 1]: 'danger' }), topPtr(vals), `弹出栈顶元素 ${popped}`, [6]);
+      const popped = vals[vals.length - 1]!;
+      yield emit(makeNodes(vals, { [vals.length - 1]: 'danger' }), topPtr(vals), `弹出栈顶元素 ${popped}`, [6], {
+        type: 'pop',
+        value: popped,
+      });
       vals = vals.slice(0, -1);
       c.removes++;
       yield emit(
@@ -66,7 +91,10 @@ export function* stackGen(input: LinearInput): Generator<VizStep, void, void> {
     case 'peek': {
       yield emit(makeNodes(vals), topPtr(vals), `初始栈（${vals.length} 个元素），查看栈顶（peek）`, [7]);
       if (vals.length === 0) {
-        yield emit(makeNodes(vals), topPtr(vals), '栈为空！没有栈顶元素可查看', [8]);
+        yield emit(makeNodes(vals), topPtr(vals), '栈为空！没有栈顶元素可查看', [8], {
+          type: 'peek',
+          value: null,
+        });
         return;
       }
       yield emit(
@@ -74,6 +102,7 @@ export function* stackGen(input: LinearInput): Generator<VizStep, void, void> {
         topPtr(vals),
         `栈顶元素为 ${vals[vals.length - 1]}（peek 不移除元素）`,
         [9],
+        { type: 'peek', value: vals[vals.length - 1]! },
       );
       yield emit(makeNodes(vals), topPtr(vals), '查看完成，栈保持不变', [9]);
       return;
@@ -95,23 +124,40 @@ export function* queueGen(input: LinearInput): Generator<VizStep, void, void> {
     case 'enqueue': {
       yield emit(makeNodes(vals), ptrs(vals), `初始队列（${vals.length} 个元素），准备将 ${op.value} 入队`, [0]);
       if (vals.length >= LINEAR_CAPACITY) {
-        yield emit(makeNodes(vals), ptrs(vals), `队列已满（容量 ${LINEAR_CAPACITY}）！入队操作被拒绝`, [1]);
+        yield emit(makeNodes(vals), ptrs(vals), `队列已满（容量 ${LINEAR_CAPACITY}）！入队操作被拒绝`, [1], {
+          type: 'enqueue',
+          value: op.value,
+          rejected: true,
+        });
         return;
       }
       vals = [...vals, op.value];
       c.inserts++;
-      yield emit(makeNodes(vals, { [vals.length - 1]: 'active' }), ptrs(vals), `${op.value} 从队尾入队`, [2]);
+      yield emit(
+        makeNodes(vals, { [vals.length - 1]: 'active' }),
+        ptrs(vals),
+        `${op.value} 从队尾入队`,
+        [2],
+        { type: 'enqueue', value: op.value },
+      );
       yield emit(makeNodes(vals), ptrs(vals), `入队完成：队首 ${vals[0]}，队尾 ${vals[vals.length - 1]}`, [3]);
       return;
     }
     case 'dequeue': {
       yield emit(makeNodes(vals), ptrs(vals), `初始队列（${vals.length} 个元素），准备出队`, [4]);
       if (vals.length === 0) {
-        yield emit(makeNodes(vals), ptrs(vals), '队列为空！出队操作被拒绝', [5]);
+        yield emit(makeNodes(vals), ptrs(vals), '队列为空！出队操作被拒绝', [5], {
+          type: 'dequeue',
+          value: null,
+          rejected: true,
+        });
         return;
       }
-      const out = vals[0];
-      yield emit(makeNodes(vals, { 0: 'danger' }), ptrs(vals), `队首元素 ${out} 出队`, [6]);
+      const out = vals[0]!;
+      yield emit(makeNodes(vals, { 0: 'danger' }), ptrs(vals), `队首元素 ${out} 出队`, [6], {
+        type: 'dequeue',
+        value: out,
+      });
       vals = vals.slice(1);
       c.removes++;
       yield emit(
@@ -125,7 +171,10 @@ export function* queueGen(input: LinearInput): Generator<VizStep, void, void> {
     case 'front': {
       yield emit(makeNodes(vals), ptrs(vals), `初始队列（${vals.length} 个元素），查看队首（front）`, [7]);
       if (vals.length === 0) {
-        yield emit(makeNodes(vals), ptrs(vals), '队列为空！没有队首元素可查看', [8]);
+        yield emit(makeNodes(vals), ptrs(vals), '队列为空！没有队首元素可查看', [8], {
+          type: 'front',
+          value: null,
+        });
         return;
       }
       yield emit(
@@ -133,6 +182,7 @@ export function* queueGen(input: LinearInput): Generator<VizStep, void, void> {
         ptrs(vals),
         `队首元素为 ${vals[0]}（front 不移除元素）`,
         [9],
+        { type: 'front', value: vals[0]! },
       );
       yield emit(makeNodes(vals), ptrs(vals), '查看完成，队列保持不变', [9]);
       return;

@@ -44,13 +44,19 @@ export function* heapSortGen(input: SortInput): Generator<VizStep, void, void> {
 
   // 排序：反复取堆顶
   for (let end = n - 1; end >= 1; end--) {
-    const top = arr[0];
+    const top = arr[0]!;
+    const before: [number, number] = [arr[0]!, arr[end]!];
     swapAt(arr, 0, end);
     c.swaps++;
     sortedFlags[end] = true;
-    yield emit(`堆顶最大值 ${top} 与 a[${end}]=${arr[0]} 交换，a[${end}] 就位`, [3, 4], {
-      swapping: [0, end],
-    });
+    yield emit(
+      `堆顶最大值 ${top} 与 a[${end}]=${arr[0]} 交换，a[${end}] 就位`,
+      [3, 4],
+      {
+        swapping: [0, end],
+      },
+      { type: 'swap', indices: [0, end], values: before, reason: 'heap-extract' },
+    );
     if (end - 1 >= 1) {
       yield* siftDown(arr, c, emit, 0, end - 1);
     }
@@ -76,22 +82,37 @@ function* siftDown(
     let child = left;
     if (left + 1 <= end) {
       c.comparisons++;
-      yield emit(`比较两个孩子 a[${left}]=${arr[left]} 与 a[${left + 1}]=${arr[left + 1]}`, [7], {
-        comparing: [left, left + 1],
-      });
+      yield emit(
+        `比较两个孩子 a[${left}]=${arr[left]} 与 a[${left + 1}]=${arr[left + 1]}`,
+        [7],
+        {
+          comparing: [left, left + 1],
+        },
+        { type: 'compare', indices: [left, left + 1], values: [arr[left]!, arr[left + 1]!], purpose: 'heap-child' },
+      );
       if (arr[left + 1] > arr[left]) child = left + 1;
     }
     c.comparisons++;
-    yield emit(`比较 a[${i}]=${arr[i]} 与较大孩子 a[${child}]=${arr[child]}`, [7, 8], {
-      comparing: [i, child],
-    });
+    yield emit(
+      `比较 a[${i}]=${arr[i]} 与较大孩子 a[${child}]=${arr[child]}`,
+      [7, 8],
+      {
+        comparing: [i, child],
+      },
+      { type: 'compare', indices: [i, child], values: [arr[i]!, arr[child]!], purpose: 'heap-child' },
+    );
     if (arr[child] > arr[i]) {
-      const before = `${arr[i]} 与 ${arr[child]}`;
+      const before: [number, number] = [arr[i]!, arr[child]!];
       swapAt(arr, i, child);
       c.swaps++;
-      yield emit(`孩子更大：交换 a[${i}] 与 a[${child}]（原值 ${before}），继续下沉`, [9, 10], {
-        swapping: [i, child],
-      });
+      yield emit(
+        `孩子更大：交换 a[${i}] 与 a[${child}]（原值 ${before[0]} 与 ${before[1]}），继续下沉`,
+        [9, 10],
+        {
+          swapping: [i, child],
+        },
+        { type: 'swap', indices: [i, child], values: before, reason: 'heapify' },
+      );
       i = child;
     } else {
       yield emit(`a[${i}]=${arr[i]} 不小于孩子，堆性质满足，下沉结束`, [11], {
