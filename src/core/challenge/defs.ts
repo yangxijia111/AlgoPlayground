@@ -2,6 +2,8 @@
  * 首批 7 个挑战定义（docs/CHALLENGE_SPEC.md §3）。
  * 全部复用现有 Generator 提取期望序列：排序取「可交互步」（比较/交换），
  * 结构类拼接多次单操作运行，树/图取「被访问节点」。
+ * P11 起 extractAction 优先读 VizStep.semantic（semantic → ChallengeAction），
+ * frame-diff 仅作兼容回退；期望序列永远来自真实 Generator。
  */
 import type { AlgorithmInput } from './deps';
 import type { ChallengeAction, ChallengeDef } from './types';
@@ -16,16 +18,14 @@ const run = (algoId: string, input: AlgorithmInput): VizStep[] => {
   return collectSteps(entry.run(input));
 };
 
-/** 数组帧：比较/交换动作提取（冒泡与选择共用） */
+/** 数组帧：比较/交换动作提取（冒泡与选择共用；semantic-first） */
 function extractSortAction(cur: VizStep): ChallengeAction | null {
-  const f = cur.frame;
-  if (f.kind !== 'array') return null;
-  if (f.swapping.length === 2) {
-    return { kind: 'swap', indices: [f.swapping[0]!, f.swapping[1]!] };
-  }
-  if (f.comparing.length === 2) {
-    return { kind: 'compare', indices: [f.comparing[0]!, f.comparing[1]!] };
-  }
+  // semantic-only：无 semantic 的步骤（init/transition/完成）一律不提取，
+  // 避免「高亮步(semantic) + 完成步(frame-diff)」重复计入同一操作
+  const s = cur.semantic;
+  if (!s) return null;
+  if (s.type === 'swap') return { kind: 'swap', indices: [s.indices[0], s.indices[1]] };
+  if (s.type === 'compare' && s.indices.length === 2) return { kind: 'compare', indices: [s.indices[0]!, s.indices[1]!] };
   return null;
 }
 
@@ -58,12 +58,12 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
     ui: 'pick-array',
     buildSteps: () => run('binary-search', { type: 'search', variant: 'binary', array: [1, 3, 5, 7, 9, 11], target: 9 }),
     extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'compare' || s.purpose !== 'binary-mid') return null;
       const f = cur.frame;
       if (f.kind !== 'array') return null;
       const mid = f.pointers.mid;
-      if (f.comparing.length === 1 && mid !== undefined) {
-        return { kind: 'pick', value: String(f.values[mid]) };
-      }
+      if (s.indices[0] === mid) return { kind: 'pick', value: String(s.values[0]) };
       return null;
     },
   },
@@ -83,16 +83,11 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
       ...run('stack', { type: 'linear', structure: 'stack', initial: ['x'], operation: { op: 'push', value: 'y' } }),
       ...run('stack', { type: 'linear', structure: 'stack', initial: ['x', 'y'], operation: { op: 'pop' } }),
     ],
-    extractAction: (cur, prev) => {
-      const f = cur.frame;
-      if (f.kind !== 'structure' || f.layout !== 'stack') return null;
-      const p = prev?.frame;
-      if (p?.kind !== 'structure') return null;
-      if (f.nodes.length === p.nodes.length + 1) {
-        const added = f.nodes[f.nodes.length - 1];
-        return added ? { kind: 'op', op: 'push', value: added.value } : null;
-      }
-      if (f.nodes.length === p.nodes.length - 1) return { kind: 'op', op: 'pop' };
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s) return null;
+      if (s.type === 'push' && !s.rejected) return { kind: 'op', op: 'push', value: s.value };
+      if (s.type === 'pop' && !s.rejected && s.value !== null) return { kind: 'op', op: 'pop' };
       return null;
     },
   },
@@ -112,16 +107,11 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
       ...run('queue', { type: 'linear', structure: 'queue', initial: ['p'], operation: { op: 'enqueue', value: 'q' } }),
       ...run('queue', { type: 'linear', structure: 'queue', initial: ['p', 'q'], operation: { op: 'dequeue' } }),
     ],
-    extractAction: (cur, prev) => {
-      const f = cur.frame;
-      if (f.kind !== 'structure' || f.layout !== 'queue') return null;
-      const p = prev?.frame;
-      if (p?.kind !== 'structure') return null;
-      if (f.nodes.length === p.nodes.length + 1) {
-        const added = f.nodes[f.nodes.length - 1];
-        return added ? { kind: 'op', op: 'enqueue', value: added.value } : null;
-      }
-      if (f.nodes.length === p.nodes.length - 1) return { kind: 'op', op: 'dequeue' };
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s) return null;
+      if (s.type === 'enqueue' && !s.rejected) return { kind: 'op', op: 'enqueue', value: s.value };
+      if (s.type === 'dequeue' && !s.rejected && s.value !== null) return { kind: 'op', op: 'dequeue' };
       return null;
     },
   },
@@ -132,13 +122,10 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
     goal: '在 BST 中查找 6：从根节点开始，点击「算法将走到」的节点，体会小往左、大往右。',
     ui: 'tree',
     buildSteps: () => run('bst-operations', { type: 'bst', startTree: [8, 3, 10, 1, 6, 14], operation: { op: 'search', value: 6 } }),
-    extractAction: (cur, prev) => {
-      const f = cur.frame;
-      if (f.kind !== 'tree') return null;
-      const p = prev?.frame;
-      const wasActive = (id: number) => p?.kind === 'tree' && p.nodes.some((m) => m.id === id && m.state === 'active');
-      const active = f.nodes.find((n) => n.state === 'active' && !wasActive(n.id));
-      return active ? { kind: 'pick', value: String(active.value) } : null;
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'tree-descend') return null;
+      return { kind: 'pick', value: String(s.nodeValue) };
     },
   },
   {
@@ -148,14 +135,10 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
     goal: '从 A 出发对图做广度优先搜索：按 BFS 的访问顺序依次点击节点（邻居按字母序入队）。',
     ui: 'graph',
     buildSteps: () => run('bfs', bfsDefaultInput()),
-    extractAction: (cur, prev) => {
-      const f = cur.frame;
-      if (f.kind !== 'graph') return null;
-      const p = prev?.frame;
-      if (f.current !== null && p?.kind === 'graph' && p.current !== f.current) {
-        return { kind: 'pick', value: f.current };
-      }
-      return null;
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'visit-node') return null;
+      return { kind: 'pick', value: s.nodeId };
     },
   },
 ];
