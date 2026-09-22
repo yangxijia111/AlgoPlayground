@@ -480,7 +480,8 @@ function fromCompact(c: unknown): AlgorithmInput | null {
       }
     }
     case 'bst': {
-      const tree = parseNums(Array.isArray(o.tree) ? o.tree.join(',') : null, 0, 31, -999, 999);
+      // 空树（startTree: []）是合法输入：join 后为空串，parseNums 会拒——特判空数组
+      const tree = Array.isArray(o.tree) && o.tree.length === 0 ? [] : parseNums(Array.isArray(o.tree) ? o.tree.join(',') : null, 0, 31, -999, 999);
       if (tree === null) return null;
       if (typeof o.op !== 'string' || o.op.length > 200) return null;
       const seg = o.op.split(':');

@@ -7,6 +7,7 @@ import { structureFrame } from '../../step/frame';
 import type { ElementState, StructureNode } from '../../step/frame';
 import type { VizStep } from '../../step/step';
 import type { StepSemantic } from '../../step/semantic';
+import { LINEAR_CAPACITY } from './stackQueue';
 
 export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void, void> {
   const c = { comparisons: 0, inserts: 0, removes: 0, visits: 0 };
@@ -75,6 +76,11 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
 
     case 'insert': {
       const { position: pos, value } = op;
+      // 防御：位置越界（pos > length 或负数）拒绝，结构不变（与 applyLinkedListOperation 一致）
+      if (pos < 0 || pos > vals.length || vals.length >= LINEAR_CAPACITY) {
+        yield emit(makeNodes(vals), {}, `位置 ${pos} 越界（合法范围 0–${vals.length}）或链表已满，插入被拒绝`, [6]);
+        return;
+      }
       yield emit(
         makeNodes(vals),
         { prev: pos > 0 ? pos - 1 : null, curr: pos < vals.length ? pos : null },
@@ -117,6 +123,11 @@ export function* linkedListGen(input: LinkedListInput): Generator<VizStep, void,
 
     case 'delete': {
       const { position: pos } = op;
+      // 防御：位置越界或空表拒绝，结构不变（与 applyLinkedListOperation 一致）
+      if (pos < 0 || pos >= vals.length) {
+        yield emit(makeNodes(vals), {}, `位置 ${pos} 越界（合法范围 0–${Math.max(0, vals.length - 1)}）或链表为空，删除被拒绝`, [9]);
+        return;
+      }
       yield emit(
         makeNodes(vals),
         { prev: pos > 0 ? pos - 1 : null, curr: pos < vals.length ? pos : null },
