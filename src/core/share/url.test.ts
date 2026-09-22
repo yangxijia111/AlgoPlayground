@@ -1,5 +1,7 @@
 /**
  * Share URL 编解码测试：各输入类型往返一致 + 非法输入防御。
+ * P11：v2 单 payload 协议（buildShareQuery→parseShareQuery roundtrip 深等），
+ * v1 兼容路径（encodeInput/decodeInput）保持可用。
  */
 import { describe, expect, it } from 'vitest';
 import { allEntries } from '../algorithms';
@@ -8,7 +10,7 @@ import { buildShareQuery, decodeInput, encodeInput, parseShareQuery } from './ur
 
 registerAll(allEntries);
 
-describe('encode/decode 往返', () => {
+describe('encode/decode 往返（v1 兼容路径）', () => {
   it('sort', () => {
     const input: AlgorithmInput = { type: 'sort', array: [5, 3, 2, 1] };
     expect(encodeInput(input)).toBe('a=5%2C3%2C2%2C1');
@@ -16,10 +18,18 @@ describe('encode/decode 往返', () => {
     expect(decoded).toEqual({ type: 'sort', array: [5, 3, 2, 1] });
   });
 
-  it('search', () => {
+  it('search（v1 无 variant 字段时缺省 linear；显式 defaultSearchVariant 修复 binary 丢失）', () => {
     const input: AlgorithmInput = { type: 'search', variant: 'linear', array: [1, 3, 5], target: 5 };
     const decoded = decodeInput('search', new URLSearchParams(encodeInput(input)));
     expect(decoded).toEqual(input);
+    // P11 修复核心：binary-search 的 v1 链接恢复成 binary（而不是硬编码 linear）
+    const binaryDecoded = decodeInput('search', new URLSearchParams('a=1,3,5,7,9&t=9'), {
+      defaultSearchVariant: 'binary',
+    });
+    expect(binaryDecoded).toEqual({ type: 'search', variant: 'binary', array: [1, 3, 5, 7, 9], target: 9 });
+    // 不传缺省 → linear（向后兼容旧行为）
+    const plainDecoded = decodeInput('search', new URLSearchParams('a=1,3,5&t=5'));
+    expect(plainDecoded).toEqual({ type: 'search', variant: 'linear', array: [1, 3, 5], target: 5 });
   });
 
   it('linear（stack push / queue dequeue）', () => {
@@ -69,10 +79,12 @@ describe('encode/decode 往返', () => {
     expect(decodeInput('dp', new URLSearchParams(encodeInput(knap)))).toEqual(knap);
   });
 
-  it('全部注册条目的默认输入都能无损往返并通过自身校验', () => {
+  it('全部注册条目的默认输入都能无损往返并通过自身校验（v1 路径）', () => {
     for (const entry of allEntries) {
       const query = encodeInput(entry.defaultInput);
-      const decoded = decodeInput(entry.defaultInput.type, new URLSearchParams(query));
+      const decoded = decodeInput(entry.defaultInput.type, new URLSearchParams(query), {
+        defaultSearchVariant: entry.defaultInput.type === 'search' && entry.defaultInput.variant === 'binary' ? 'binary' : undefined,
+      });
       expect(decoded, entry.meta.id).not.toBeNull();
       const err = entry.validate(decoded!);
       expect(err, `${entry.meta.id}: ${err ?? ''}`).toBeNull();
@@ -96,18 +108,65 @@ describe('非法输入防御', () => {
     const b64 = fake.replace(/\+/g, '-').replace(/\//g, '_');
     expect(decodeInput('graph', new URLSearchParams(`g=${b64}`))).toBeNull();
   });
+
+  it('graph 坐标非法（NaN/越界）返回 null（v1 路径形态校验）', () => {
+    const bad = btoa(JSON.stringify({ type: 'graph', algorithm: 'bfs', nodes: [{ id: 'A', x: 1.5, y: 0.5 }], edges: [], start: 'A', end: null }));
+    expect(decodeInput('graph', new URLSearchParams(`g=${bad.replace(/\+/g, '-')}`))).toBeNull();
+  });
 });
 
-describe('buildShareQuery / parseShareQuery', () => {
-  it('附带步数与 beginner 标记并可解析回来', () => {
+describe('buildShareQuery / parseShareQuery（v2 协议）', () => {
+  it('附带步数与 beginner 标记并可解析回来（deepEqual 原输入）', () => {
     const input: AlgorithmInput = { type: 'sort', array: [3, 1, 2] };
-    const q = buildShareQuery(input, { step: 4, beginner: true });
-    expect(q).toContain('s=4');
-    expect(q).toContain('m=b');
-    const parsed = parseShareQuery('sort', q);
+    const q = buildShareQuery(input, { algorithmId: 'bubble-sort', step: 4, beginner: true });
+    expect(q).toMatch(/^v=2&d=/);
+    const parsed = parseShareQuery('sort', q, { algorithmId: 'bubble-sort' });
     expect(parsed).not.toBeNull();
     expect(parsed!.input).toEqual(input);
     expect(parsed!.step).toBe(4);
+    expect(parsed!.beginnerMode).toBe(true);
+  });
+
+  it('binary search：v2 roundtrip 后 variant=binary 保持（P11 修复锁定）', () => {
+    const input: AlgorithmInput = { type: 'search', variant: 'binary', array: [1, 3, 5, 7, 9, 11], target: 9 };
+    const q = buildShareQuery(input, { algorithmId: 'binary-search' });
+    const parsed = parseShareQuery('search', q, { algorithmId: 'binary-search' });
+    expect(parsed).not.toBeNull();
+    expect(parsed!.input).toEqual(input);
+    expect((parsed!.input as { variant: string }).variant).toBe('binary');
+  });
+
+  it('v1 链接继续可解（向后兼容）', () => {
+    // 旧格式链接：binary-search 条目的 v1 链接 + 条目默认 variant
+    const parsed = parseShareQuery('search', 'a=1,3,5,7,9,11&t=9', { defaultSearchVariant: 'binary' });
+    expect(parsed).not.toBeNull();
+    expect((parsed!.input as { variant: string }).variant).toBe('binary');
+    // v1 step/beginner 标记
+    const parsed2 = parseShareQuery('sort', 'a=3,1,2&s=2&m=b');
+    expect(parsed2).not.toBeNull();
+    expect(parsed2!.step).toBe(2);
+    expect(parsed2!.beginnerMode).toBe(true);
+  });
+
+  it('v2 payload.algo 与路由条目不一致返回 null', () => {
+    const input: AlgorithmInput = { type: 'sort', array: [3, 1, 2] };
+    const q = buildShareQuery(input, { algorithmId: 'bubble-sort' });
+    expect(parseShareQuery('sort', q, { algorithmId: 'heap-sort' })).toBeNull();
+    // 不传条目 id 时不做一致性校验（宽松）
+    expect(parseShareQuery('sort', q)).not.toBeNull();
+  });
+
+  it('step=0 不写入 payload；解析为 null', () => {
+    const input: AlgorithmInput = { type: 'sort', array: [3, 1, 2] };
+    const q = buildShareQuery(input, { algorithmId: 'bubble-sort', step: 0 });
+    const parsed = parseShareQuery('sort', q, { algorithmId: 'bubble-sort' });
+    expect(parsed!.step).toBeNull();
+  });
+
+  it('损坏的 v2 payload 返回 null（不崩溃）', () => {
+    expect(parseShareQuery('sort', 'v=2&d=!!!')).toBeNull();
+    expect(parseShareQuery('sort', 'v=2&d=' + btoa('not-json').replace(/\+/g, '-'))).toBeNull();
+    expect(parseShareQuery('sort', 'v=2&d=' + btoa(JSON.stringify({ v: 2, algo: 'x', in: { t: 'sort', a: [1.5] } })).replace(/\+/g, '-').replace(/\//g, '_'))).toBeNull();
   });
 
   it('纯参数串（无 s/m）可解析；只有 s/m 无数据返回 null', () => {
@@ -116,10 +175,11 @@ describe('buildShareQuery / parseShareQuery', () => {
     expect(parseShareQuery('sort', '')).toBeNull();
   });
 
-  it('含 m=b 的完整链接往返（Beginner 分享场景）', () => {
+  it('含 beginner 的完整链接往返（Beginner 分享场景）', () => {
     const input: AlgorithmInput = { type: 'linear', structure: 'stack', initial: [], operation: { op: 'push', value: 'x' } };
-    const q = buildShareQuery(input, { beginner: true });
-    const parsed = parseShareQuery('linear', q);
+    const q = buildShareQuery(input, { algorithmId: 'stack', beginner: true });
+    const parsed = parseShareQuery('linear', q, { algorithmId: 'stack' });
     expect(parsed).not.toBeNull();
+    expect(parsed!.beginnerMode).toBe(true);
   });
 });

@@ -130,14 +130,17 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     if (snapshot.finished && snapshot.total > 1) store.markAnimationWatched(entry.meta.id);
   }, [snapshot.finished, snapshot.total, entry.meta.id, store]);
 
-  // Beginner Mode：当前步详解 + 算法要点（frame-diff 确定性生成）
+  // Beginner Mode：当前步详解 + 算法要点（semantic-first 生成）。
+  // beginnerOverride 来自分享链接（仅本次浏览）；用户手动切换全局开关后让位于用户选择
   const profile = useLearningProfile();
+  const [beginnerOverride, setBeginnerOverride] = useState(false);
+  const beginnerOn = beginnerOverride || profile.settings.beginnerMode;
   const beginner = useMemo(() => {
-    if (!profile.settings.beginnerMode) return { detail: null, note: null };
+    if (!beginnerOn) return { detail: null, note: null };
     const step = steps[snapshot.index];
     const prev = snapshot.index > 0 ? steps[snapshot.index - 1] : null;
     return { detail: step ? explainStepBeginner(step, prev ?? null) : null, note: getBeginnerNote(entry.meta.id) };
-  }, [profile.settings.beginnerMode, steps, snapshot.index, entry.meta.id]);
+  }, [beginnerOn, steps, snapshot.index, entry.meta.id]);
 
   // Predict Next Step：播放推进到出题点自动暂停出题；也可手动「考考我」
   const [predictMode, setPredictMode] = useState(false);
@@ -204,13 +207,20 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   // Share：挂载时解析 URL query 中的分享数据（无效则回退默认并提示一次）
   const [searchParams] = useSearchParams();
   const [shareNotice, setShareNotice] = useState<string | null>(null);
+  // 分享携带的步下标：新 steps 就绪后 seek（engine 依赖 steps.length 重建，须延后）
+  const pendingSeekRef = useRef<number | null>(null);
   const shareAppliedRef = useRef(false);
   useEffect(() => {
     if (shareAppliedRef.current) return;
     shareAppliedRef.current = true;
     const search = searchParams.toString();
     if (!search) return;
-    const result = parseShareQuery(input.type, search);
+    const defaultVariant =
+      entry.defaultInput.type === 'search' ? entry.defaultInput.variant : undefined;
+    const result = parseShareQuery(input.type, search, {
+      algorithmId: entry.meta.id,
+      defaultSearchVariant: defaultVariant,
+    });
     if (!result) {
       setShareNotice('分享链接中的数据无效，已使用默认输入。');
       return;
@@ -220,11 +230,41 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
       setShareNotice('分享链接中的数据无效，已使用默认输入。');
       return;
     }
+    const newSteps = collectSteps(entry.run(result.input));
     setInput(result.input);
-    setSteps(collectSteps(entry.run(result.input)));
+    setSteps(newSteps);
     setInputEpoch((e) => e + 1); // 编辑器重挂，消除 shadow state 分叉
+    if (result.beginnerMode) {
+      setBeginnerOverride(true);
+      setShareNotice('新手详解已由分享链接开启（仅本次浏览生效）。');
+    }
+    if (result.step !== null) {
+      // clamp 到合法范围（s=25 但只有 18 步 → 17），不崩溃
+      const clamped = Math.max(0, Math.min(result.step, Math.max(0, newSteps.length - 1)));
+      pendingSeekRef.current = clamped;
+      if (result.step !== clamped) {
+        setShareNotice(`分享中的步数超出范围，已跳到第 ${clamped + 1} 步。`);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 分享步恢复：新 steps + 新 engine 就绪后执行一次 seek
+  useEffect(() => {
+    if (pendingSeekRef.current === null) return;
+    const target = pendingSeekRef.current;
+    pendingSeekRef.current = null;
+    engine.seek(Math.max(0, Math.min(target, Math.max(0, steps.length - 1))));
+  }, [steps, engine]);
+
+  // 用户手动切换全局 Beginner 开关后，分享链接的 override 让位于用户选择
+  const lastGlobalBeginnerRef = useRef(profile.settings.beginnerMode);
+  useEffect(() => {
+    if (lastGlobalBeginnerRef.current !== profile.settings.beginnerMode) {
+      lastGlobalBeginnerRef.current = profile.settings.beginnerMode;
+      setBeginnerOverride(false);
+    }
+  }, [profile.settings.beginnerMode]);
 
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
@@ -267,6 +307,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
               title="复制分享链接（含当前输入数据）"
               onClick={() => {
                 const query = buildShareQuery(input, {
+                  algorithmId: entry.meta.id,
                   step: snapshot.index,
                   beginner: profile.settings.beginnerMode,
                 });
