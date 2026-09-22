@@ -3,9 +3,11 @@
 ## 【Version】
 
 - **v1.1.0**（package.json / tag / GitHub Release 一致）
-- Tag：`v1.1.0`（创建于 main 分支最终提交；历史 tag v1.0.0 / v1.0.1 未做任何修改）
-- Release：AlgoPlayground v1.1.0（GitHub Release，Notes 见下方摘要）
-- 基线：v1.0.1（`faac66b`）→ v1.1.0 共 10 个 Phase 提交（P10-0 至 P10-10）
+- Commit：`b6e5a63`（fix: prefer-const in challenge machine test — CI lint gate）
+- Tag：`v1.1.0`（指向上述提交；历史 tag v1.0.0 / v1.0.1 未做任何修改。备注：tag 首次创建于 `f319170`，2 分钟后发现该提交含一处 lint 错误，随即在本会话内将 tag 重定位到修复提交——自建 tag 的即时修正，无外部消费者）
+- Release：https://github.com/yangxijia111/AlgoPlayground/releases/tag/v1.1.0
+- 基线：v1.0.1（`faac66b`）→ v1.1.0 共 12 个 Phase 提交（P10-0 至 P10-10 + lint fix）
+- GitHub Actions（最终提交 `b6e5a63`）：CI ✅ / E2E ✅ / Security ✅ / Pages ✅ 全部成功
 
 ## 【Learning Features】
 
@@ -48,7 +50,7 @@
 
 - Pages：GitHub Actions 官方部署（push main 自动触发），base=/AlgoPlayground/，HashRouter 深层路由刷新不 404
 - URL：https://yangxijia111.github.io/AlgoPlayground/
-- Smoke Test（部署后实测）：Home ✓ / Learn ✓ / 概念课 ✓ / Bubble Sort ✓ / Beginner ✓ / Predict ✓ / Quiz ✓ / Challenge ✓ / Progress ✓ / Bookmarks ✓ / Notes ✓ / Share URL ✓ / Graph preset ✓ / Compare ✓ / Dijkstra ✓ / 递归树 ✓ / 复杂度探索器 ✓ / 深层路由刷新 ✓ / 无 console fatal error ✓
+- Smoke Test（部署后实测，Playwright 驱动真实浏览器访问线上 URL，18/18 通过）：首页 ✓ / 深层路由刷新不 404 ✓ / Learning Path ✓ / Bubble Sort ✓ / Beginner Mode ✓ / Predict ✓ / Quiz ✓ / Challenge ✓ / Progress ✓ / Bookmarks ✓ / Notes ✓ / Share URL ✓ / Graph preset ✓ / Compare ✓ / Dijkstra ✓ / 复杂度探索器 ✓ / 递归树 ✓ / 无 console fatal error ✓
 
 ## 【Architecture】
 
