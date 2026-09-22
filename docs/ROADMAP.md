@@ -87,6 +87,23 @@
 
 拆解与验收标准见 [P10_ROADMAP.md](P10_ROADMAP.md)（P10-0 架构 → P10-1 学习路线 → P10-2 Beginner+术语 → P10-3 预测 → P10-4 测验 → P10-5 挑战 → P10-6 掌握度 → P10-7 笔记收藏 → P10-8 分享/导入导出 → P10-9 递归树/DP/复杂度 → P10-10 审计与发布）。规格：LEARNING_EXPERIENCE_SPEC / LEARNING_DATA_SPEC / PREDICT_SPEC / QUIZ_SPEC / CHALLENGE_SPEC / PROGRESS_SPEC。
 
+## P11 Deep Architecture & Correctness Hardening（进行中，目标 v1.1.1）
+
+范围：不加新功能，强化正确性与一致性。1) 跨层状态一致性：修复 LinearInputEditor Stack pop 方向错误、BST 删除的插入序列近似失真（改先序序列表示）、Share 恢复后编辑器 shadow state 同步（inputEpoch 重挂）。2) 语义层：VizStep 增加一等 `semantic`（discriminated union），全部算法 Generator 按类别迁移；Beginner / Predict / Challenge 改为 semantic-first（frame-diff 降级为兼容 fallback）。3) 教学正确性：swap 泛化「冒泡」、BST「每层排除一半」、Dijkstra relax 猜目标三处修复。4) Share：协议 v2（`v=2&d=...` 单 payload + graph 紧凑编码），v1 链接向后兼容；修复 binary variant 丢失、step 不恢复、beginner 丢弃、graph 2000 上限。5) Storage：schema v2（revision + migration）、PersistenceStatus（write-failed/quota-exceeded 不再静默）、跨标签页域合并（storage event 传输抽象 + fake transport 测试）、strict import（跨字段 invariant、真实日期校验、严格图校验、1MB 限制）。6) 测试体系：fast-check 属性测试、跨层契约（Editor⇄Generator⇄Reference）、metamorphic、Semantic Coverage Contract、8 项新 E2E。
+
+规格：P11_ARCHITECTURE_AUDIT / SEMANTIC_STEP_SPEC / STATE_CONSISTENCY_SPEC / SHARE_HYDRATION_SPEC / STORAGE_RELIABILITY_SPEC / CROSS_LAYER_TEST_SPEC / P11_ROADMAP。
+
+验收标准（全部满足才发布 v1.1.1）：
+- [ ] Stack 连续状态链修复且有契约测试锁定
+- [ ] StepSemantic 完成，主要算法关键步骤语义覆盖（Coverage Contract 通过）
+- [ ] Beginner / Predict / Challenge semantic-first，三处教学错误修复且有正确性测试
+- [ ] Share v2 + v1 兼容：variant / step（含 clamp）/ beginner（session 生效）/ 最大合法图 roundtrip 全部可用
+- [ ] Storage v2：invariant / 真实日期 / 严格图校验 / Import 拒绝坏数据 / 持久化状态可见 / 跨标签页不丢数据
+- [ ] 属性 / 契约 / metamorphic 测试存在且通过
+- [ ] 原 587 单测 + 66 E2E 全部保持通过
+- [ ] lint / typecheck / test / coverage / build / e2e 与 CI（含 Security、Pages）全绿
+- [ ] README / CHANGELOG / FINAL_REPORT 同步；v1.1.1 tag 创建后不移动
+
 ## 状态
 
 | Phase | 状态 |
@@ -102,3 +119,4 @@
 | P8 | ✅ 完成（v1.0.0 已发布） |
 | P9 | ✅ 完成（v1.0.1 已发布） |
 | P10 | ✅ 完成（v1.1.0 已发布） |
+| P11 | 🚧 进行中（目标 v1.1.1） |
