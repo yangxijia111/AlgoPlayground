@@ -3,10 +3,12 @@
  */
 import { Link } from 'react-router-dom';
 import { CATEGORIES, algorithmsByCategory } from '../../core/registry';
+import { WelcomeCard } from '../components/WelcomeCard';
 
 export default function Home() {
   return (
     <div className="home">
+      <WelcomeCard />
       <section className="home-hero">
         <h1>AlgoPlayground</h1>
         <p className="home-tagline">

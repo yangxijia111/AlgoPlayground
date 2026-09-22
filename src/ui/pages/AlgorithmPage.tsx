@@ -35,6 +35,7 @@ import { generatePredictQuestion } from '../../core/predict/engine';
 import type { PredictQuestion } from '../../core/predict/engine';
 import { PredictCard } from '../components/PredictCard';
 import { QuizCard } from '../components/QuizCard';
+import { NoteEditor } from '../components/NoteEditor';
 import { questionsByAlgorithm } from '../../core/quiz';
 
 export default function AlgorithmPage() {
@@ -193,6 +194,8 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     [store, entry.meta.id],
   );
 
+  const bookmarked = profile.bookmarks.some((b) => b.targetId === entry.meta.id);
+
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
     <ArrayStateView frame={step.frame} />
@@ -217,6 +220,16 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
           <div className="card-head">
             <h1 className="card-title">{entry.meta.name}</h1>
             <span className="card-sub">{entry.meta.enName}</span>
+            <button
+              type="button"
+              className={`btn btn-icon bookmark-btn${bookmarked ? ' is-on' : ''}`}
+              aria-pressed={bookmarked}
+              aria-label={bookmarked ? '取消收藏' : '收藏本算法'}
+              title={bookmarked ? '取消收藏' : '收藏'}
+              onClick={() => store.toggleBookmark(entry.meta.id)}
+            >
+              {bookmarked ? '★' : '☆'}
+            </button>
           </div>
           <InputEditor input={input} entry={entry} onCommit={commit} />
           {error ? (
@@ -275,6 +288,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
             onAnswer={answerQuiz}
           />
         ) : null}
+        <NoteEditor algorithmId={entry.meta.id} />
       </aside>
     </div>
   );

@@ -2346,3 +2346,97 @@ input[type='range'] {
 .sidebar-state-dot.is-mastered {
   background: var(--state-success);
 }
+
+/* --------------------------------------------------------------------------
+   P10-7 Notes / Bookmark / Welcome
+   -------------------------------------------------------------------------- */
+
+.note-card {
+  margin-top: 10px;
+}
+
+.note-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.note-status {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.note-textarea {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-raised);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.note-textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.bookmark-btn.is-on {
+  color: var(--state-active);
+}
+
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 12, 20, 0.6);
+  padding: 16px;
+}
+
+.welcome-card {
+  max-width: 520px;
+  width: 100%;
+  padding: 22px 24px;
+  max-height: 88vh;
+  overflow: auto;
+}
+
+.welcome-card h1 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.welcome-lead {
+  margin: 0 0 12px;
+  line-height: 1.7;
+  color: var(--color-text-dim);
+}
+
+.welcome-lead strong {
+  color: var(--color-text);
+}
+
+.welcome-points {
+  margin: 0 0 16px;
+  padding-left: 4px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

@@ -137,3 +137,9 @@
 - 新增 `/progress` 页：统计卡、8 分类掌握条形、最近学习、算法明细表（掌握度徽章 + Quiz/Predict 正确率 + 挑战完成）、收藏区（含概念课）；空态引导。
 - 侧栏状态点升级为掌握度等级色（学习中蓝/接近掌握黄/已掌握绿/未开始灰，aria-label 同步）。
 - 新增 17 项掌握度单测 + 3 项 UI 测试 + 2 项 E2E；累计 546 项单测 + 54 项 E2E 全绿。
+
+### P10-7 — Notes / Bookmarks / First Run Welcome ✅
+- 新增学习笔记 `NoteEditor`：普通 textarea（不做富文本）、800ms 防抖自动保存、卸载/页面隐藏立即保存、「编辑中…/已保存 ✓」状态提示；刷新后保留。
+- 算法页标题栏新增收藏星标（☆/★，aria-pressed）；收藏列表在 Progress 页「我的收藏」区展示并可跳转。
+- 新增 First Run Welcome：单屏欢迎卡片（平台是什么 / 推荐从 Learn 开始 / 播放器与新手模式提示），仅首次访问出现（settings.welcomeDone），可 Skip、Esc 关闭、键盘可操作；不做多屏强制 Tutorial。
+- 新增 6 项 UI 测试 + 4 项 E2E；累计 552 项单测 + 58 项 E2E 全绿。
