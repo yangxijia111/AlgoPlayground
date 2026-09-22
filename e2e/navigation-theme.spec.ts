@@ -24,6 +24,12 @@ const PAGES = [
 test.describe('主题与全站导航', () => {
   test('Dark 默认，切换 Light 后刷新保持（localStorage 持久化）', async ({ page }) => {
     await page.goto('/');
+    // 首次访问会弹首次欢迎卡（v1.1.0）；先跳过再操作主题
+    const welcome = page.getByRole('dialog', { name: /欢迎使用/ });
+    if (await welcome.isVisible().catch(() => false)) {
+      await page.getByRole('button', { name: '跳过' }).click();
+      await expect(welcome).toHaveCount(0);
+    }
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await page.getByRole('button', { name: '切换到浅色主题' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');

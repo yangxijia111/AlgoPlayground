@@ -4,6 +4,7 @@
 import type { ReactNode } from 'react';
 import type { AlgorithmMeta } from '../../core/registry';
 import type { VizStep } from '../../core/step/step';
+import { ALGO_COMPLEXITY } from '../../core/learning/complexity';
 
 /** 计数器键的中文显示名 */
 export const COUNTER_LABELS: Record<string, string> = {
@@ -32,6 +33,8 @@ export function TeachingPanel({
   beginner?: { detail: string | null; note: string | null };
 }) {
   const highlight = new Set(step?.pseudocodeLines ?? []);
+  const threeTier = ALGO_COMPLEXITY.find((r) => r.algorithmId === meta.id) ?? null;
+  const threeTierNote = threeTier?.note ?? null;
 
   return (
     <div className="teaching-panel">
@@ -52,9 +55,26 @@ export function TeachingPanel({
           <div className="meta-row">
             <div>
               <dt>时间复杂度</dt>
-              <dd>
-                <code>{meta.timeComplexity}</code>
-              </dd>
+              {threeTier ? (
+                <dd className="complexity-tiers">
+                  <span className="tier">
+                    <em>最好</em>
+                    <code>{threeTier.best}</code>
+                  </span>
+                  <span className="tier">
+                    <em>平均</em>
+                    <code>{threeTier.average}</code>
+                  </span>
+                  <span className="tier">
+                    <em>最坏</em>
+                    <code>{threeTier.worst}</code>
+                  </span>
+                </dd>
+              ) : (
+                <dd>
+                  <code>{meta.timeComplexity}</code>
+                </dd>
+              )}
             </div>
             <div>
               <dt>空间复杂度</dt>
@@ -63,6 +83,7 @@ export function TeachingPanel({
               </dd>
             </div>
           </div>
+          {threeTierNote ? <p className="complexity-note-text">{threeTierNote}</p> : null}
           {meta.stability ? (
             <div>
               <dt>稳定性</dt>

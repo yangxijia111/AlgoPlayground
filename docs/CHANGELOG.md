@@ -157,3 +157,7 @@
 - DP 教学增强：`DPFrame.transition?`（公式/候选对比/选择原因）；fib-dp 与 0/1 背包填格步填充（背包给出「不选 vs 选」两候选及 chosen 原因）；DPStateView 展示转移公式、候选对比与选择。
 - Complexity Explorer：`/complexity` 页 + `core/learning/complexity.ts`（六类增长函数、对数轴 SVG 折线、n 可调滑杆、操作数对照表、13 个算法的三档复杂度映射并显式区分最好/平均/最坏——如快排平均 O(n log n)、最坏 O(n²)）。
 - 新增 9 项单测 + 3 项 E2E；累计 587 项单测 + 65 项 E2E 全绿；coverage 98.44/91.14/99.65/98.44。
+
+## [1.1.0] — 2026-09-22
+
+首个学习平台版本（P10 Learning Experience）：在 v1.0.1 的 20 算法可视化 + 统一播放器 + 比较模式之上，构建完整学习闭环——学习路线（13 章 + 4 概念课）、Beginner Mode 逐步详解、Predict Next Step、Quiz（62 题）、Challenge（7 个动手挑战）、掌握度与进度（确定性规则）、笔记/收藏/欢迎引导、分享链接、数据导入导出/重置、图预设、递归树视图、DP 转移教学、复杂度探索器、隐私声明。全部学习功能本地优先、零数据收集。587 项单测 + 66 项 E2E 全绿；架构不变（Algorithm → Generator<VizStep> → Snapshot → PlaybackEngine → React UI）。

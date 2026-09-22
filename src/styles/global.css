@@ -2630,3 +2630,29 @@ input[type='range'] {
 .rtree-dot--returned {
   background: var(--state-success);
 }
+
+.complexity-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.complexity-tiers .tier {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.complexity-tiers .tier em {
+  font-style: normal;
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  min-width: 28px;
+}
+
+.complexity-note-text {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+}
