@@ -6,7 +6,7 @@
 import type { GraphModel } from '../registry';
 
 /** 当前学习数据 schema 版本；未来结构性变更必须 +1 并注册迁移函数 */
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 
 /** localStorage 键名（禁止 localStorage.clear()，只操作自己的键） */
 export const LEARNING_STORAGE_KEY = 'algoplayground-learning';
@@ -111,9 +111,11 @@ export interface LearningProfile {
   activityDays: string[];
 }
 
-/** localStorage 根对象（版本化，供迁移） */
+/** localStorage 根对象（版本化，供迁移）。v2 起含 revision（跨标签页合并依据） */
 export interface LearningStorageRoot {
   storageVersion: number;
+  /** 每次成功写入 +1；v1 数据迁移后为 0 */
+  revision: number;
   profile: LearningProfile;
 }
 

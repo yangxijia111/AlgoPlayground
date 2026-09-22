@@ -60,8 +60,10 @@ describe('分享按钮', () => {
 
 describe('DataCard 数据管理', () => {
   it('looksLikeLearningJson 校验', () => {
+    // P11：schema v2；v1 导出文件仍可导入（迁移后校验），未来版本拒绝
+    expect(looksLikeLearningJson('{"storageVersion":2,"profile":{}}')).toBe(true);
     expect(looksLikeLearningJson('{"storageVersion":1,"profile":{}}')).toBe(true);
-    expect(looksLikeLearningJson('{"storageVersion":2,"profile":{}}')).toBe(false);
+    expect(looksLikeLearningJson('{"storageVersion":3,"profile":{}}')).toBe(false);
     expect(looksLikeLearningJson('not json')).toBe(false);
   });
 
