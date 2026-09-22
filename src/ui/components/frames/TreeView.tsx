@@ -9,7 +9,7 @@ const VIEW_H = 440;
 const PAD = 40;
 const R = 22;
 
-export function TreeView({ frame }: { frame: TreeFrame }) {
+export function TreeView({ frame, onSelectNode }: { frame: TreeFrame; onSelectNode?: (id: number) => void }) {
   const px = (x: number) => PAD + x * (VIEW_W - 2 * PAD);
   const py = (y: number) => PAD + y * (VIEW_H - 2 * PAD);
   const posById = new Map(frame.nodes.map((n) => [n.id, { x: px(n.x), y: py(n.y) }]));
@@ -52,7 +52,11 @@ export function TreeView({ frame }: { frame: TreeFrame }) {
           const p = posById.get(n.id);
           if (!p) return null;
           return (
-            <g key={n.id}>
+            <g
+              key={n.id}
+              className={onSelectNode ? 'viz-node-clickable' : undefined}
+              onClick={onSelectNode ? () => onSelectNode(n.id) : undefined}
+            >
               <circle cx={p.x} cy={p.y} r={R} className={`viz-el viz-el--${n.state}`} />
               <text x={p.x} y={p.y + 5} textAnchor="middle" className="tree-node-text">
                 {n.value}

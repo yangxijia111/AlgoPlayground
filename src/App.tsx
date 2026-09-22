@@ -11,6 +11,7 @@ import Home from './ui/pages/Home';
 import LearnPage from './ui/pages/LearnPage';
 import ConceptPage from './ui/pages/ConceptPage';
 import GlossaryPage from './ui/pages/GlossaryPage';
+import { ChallengesPage, ChallengePlayPage } from './ui/pages/ChallengePage';
 import { useTheme } from './ui/hooks/useTheme';
 import { useLearningProfile } from './ui/hooks/useLearningProfile';
 import { getLearningStore } from './core/storage/store';
@@ -71,6 +72,8 @@ export default function App() {
                 <Route path="/learn" element={<LearnPage />} />
                 <Route path="/learn/concept/:conceptId" element={<ConceptPage />} />
                 <Route path="/glossary" element={<GlossaryPage />} />
+                <Route path="/challenges" element={<ChallengesPage />} />
+                <Route path="/challenges/:challengeId" element={<ChallengePlayPage />} />
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/:category/:algoId" element={<AlgorithmPage />} />
                 <Route

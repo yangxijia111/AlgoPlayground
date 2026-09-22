@@ -16,7 +16,7 @@ const FRONTIER_LABELS: Record<string, string> = {
   none: '',
 };
 
-export function GraphView({ frame }: { frame: GraphFrame }) {
+export function GraphView({ frame, onSelectNode }: { frame: GraphFrame; onSelectNode?: (id: string) => void }) {
   const px = (x: number) => PAD + x * (VIEW_W - 2 * PAD);
   const py = (y: number) => PAD + y * (VIEW_H - 2 * PAD);
   const posById = new Map(frame.nodes.map((n) => [n.id, { x: px(n.x), y: py(n.y) }]));
@@ -76,7 +76,11 @@ export function GraphView({ frame }: { frame: GraphFrame }) {
           if (!p) return null;
           const isCurrent = frame.current === n.id;
           return (
-            <g key={n.id}>
+            <g
+              key={n.id}
+              className={onSelectNode ? 'viz-node-clickable' : undefined}
+              onClick={onSelectNode ? () => onSelectNode(n.id) : undefined}
+            >
               {isCurrent ? <circle cx={p.x} cy={p.y} r={R + 7} className="graph-halo" /> : null}
               <circle cx={p.x} cy={p.y} r={R} className={`viz-el viz-el--${n.state}`} />
               <text x={p.x} y={p.y + 5} textAnchor="middle" className="tree-node-text">

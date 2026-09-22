@@ -122,3 +122,11 @@
 - 题库完整性静态校验测试：id 唯一、algorithmId 存在于注册表、options/answer 与题型匹配、核心算法 ≥3 题且 ≥2 类别。
 - 算法页新增「📝 随堂小测」：顺序作答、即时判分与解析、提交后锁定、下一题/再做一轮、历史对错圆点（刷新保留）；答题记录经 store 入库（attemptCount 累加、lastCorrect 覆盖）。
 - 新增 17 项单测 + 2 项 E2E；累计 513 项单测 + 45 项 E2E 全绿；coverage 98.43/91.86/99.57/98.43。
+
+### P10-5 — Challenge Mode ✅
+- 新增挑战核心 `src/core/challenge/`：`ChallengeDef/ChallengeAction/ChallengeMachine/ChallengeResult` 类型 + 纯函数状态机（createMachine/submitAction/restartMachine，不可变更新，headless 可测）。
+- 期望序列完全复用现有 `Generator<VizStep>`：排序取比较/交换步、结构类拼接多次单操作运行、树/图取被访问节点——挑战与真实算法结构上不可能冲突；「挑战动作与真实算法一致」测试逐一通关验证。
+- 首批 7 个挑战全部可玩：冒泡一轮（点两格比较/交换）、选择一轮、二分定位（点中点）、栈/队列操作序列（操作按钮）、BST 查找与 BFS 访问顺序（点树上/图上节点）。
+- 错误反馈具教学价值：说明算法此刻应该做什么（如「BFS 用队列，下一步应访问最早入队的节点」），错误反馈引用期望动作 + 真实步骤解说。
+- TreeView/GraphView 新增可选 `onSelectNode`（默认不传行为不变）；新增 `/challenges` 列表与 `/challenges/:id` 玩法页；完成挑战写入 store（attempts/bestMistakes）计入掌握度。
+- 新增 13 项状态机单测 + 7 项 E2E；累计 526 项单测 + 52 项 E2E 全绿。
