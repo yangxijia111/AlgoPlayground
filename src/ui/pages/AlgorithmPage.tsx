@@ -96,6 +96,8 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   const [input, setInput] = useState<AlgorithmInput>(entry.defaultInput);
   const [steps, setSteps] = useState<VizStep[]>(() => collectSteps(entry.run(entry.defaultInput)));
   const [error, setError] = useState<string | null>(null);
+  // 输入身份：本地 commit 不变；share 恢复时 +1，强制编辑器重挂以同步 shadow state（STATE_CONSISTENCY_SPEC §2.3）
+  const [inputEpoch, setInputEpoch] = useState(0);
   const store = getLearningStore();
 
   // 学习记录：进入页面计数（ref 防抖：StrictMode 重挂不重复计数）
@@ -220,6 +222,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
     }
     setInput(result.input);
     setSteps(collectSteps(entry.run(result.input)));
+    setInputEpoch((e) => e + 1); // 编辑器重挂，消除 shadow state 分叉
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -276,7 +279,7 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
               {shareCopied ? '已复制 ✓' : '🔗'}
             </button>
           </div>
-          <InputEditor input={input} entry={entry} onCommit={commit} />
+          <InputEditor key={`${entry.meta.id}:${inputEpoch}`} input={input} entry={entry} onCommit={commit} />
           {error ? (
             <p className="form-error form-error--page" role="alert">
               {error}

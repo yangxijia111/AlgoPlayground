@@ -1,9 +1,13 @@
 /**
  * BST 操作编辑器：重建（建树动画）/ 插入 / 搜索 / 删除，支持连续操作（链式）。
+ * 状态转移统一走 applyBSTOperation（STATE_CONSISTENCY_SPEC）：
+ * 删除必须用「删除产物树的先序序列」表示——双子节点删除时
+ * 「原序列去掉该值」重建的树与真实 BST 删除产物不同构。
  */
 import { useState } from 'react';
 import { parseIntArray } from '../../core/validation';
 import type { BSTInput } from '../../core/registry';
+import { applyBSTOperation } from '../../core/editors/structureState';
 
 const MAX_NODES = 31;
 
@@ -63,12 +67,14 @@ export function BSTInputEditor({ value, onCommit }: { value: BSTInput; onCommit:
   const onDelete = () => {
     const v = parseValue();
     if (v === null) return;
-    if (!tree.includes(v)) {
+    setError(null);
+    // reducer 内部处理「值不存在 → 拒绝」；成功时返回删除产物树的先序序列
+    const result = applyBSTOperation(tree, { op: 'delete', value: v });
+    if (result.rejected) {
       setError(`树中不存在 ${v}，无法删除`);
       return;
     }
-    setError(null);
-    setTree(tree.filter((x) => x !== v));
+    setTree(result.next);
     onCommit({ type: 'bst', startTree: tree, operation: { op: 'delete', value: v } });
   };
 

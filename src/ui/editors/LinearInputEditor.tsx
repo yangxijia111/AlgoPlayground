@@ -1,9 +1,11 @@
 /**
  * 栈/队列操作编辑器：显示当前元素，提供入/出/查看操作按钮，支持连续操作（链式）。
+ * 状态转移统一走 applyLinearOperation（STATE_CONSISTENCY_SPEC：UI ⇄ Generator ⇄ Reference 三方一致）。
  */
 import { useState } from 'react';
 import type { LinearInput, LinearOperation } from '../../core/registry';
 import { LINEAR_CAPACITY } from '../../core/algorithms/linear/stackQueue';
+import { applyLinearOperation } from '../../core/editors/structureState';
 
 function parseItems(text: string): { ok: true; values: string[] } | { ok: false; error: string } {
   const parts = text.split(/[,，\s]+/).filter((p) => p !== '');
@@ -22,8 +24,10 @@ export function LinearInputEditor({ value, onCommit }: { value: LinearInput; onC
   const isStack = value.structure === 'stack';
   const label = isStack ? '栈' : '队列';
 
-  const runOp = (operation: LinearOperation, nextList: string[]) => {
-    setList(nextList);
+  // 三段式契约：before（闭包捕获）+ operation → after（reducer 计算，拒绝时不变）
+  const runOp = (operation: LinearOperation) => {
+    const { next } = applyLinearOperation(list, value.structure, operation);
+    setList(next);
     onCommit({ type: 'linear', structure: value.structure, initial: list, operation });
   };
 
@@ -38,19 +42,17 @@ export function LinearInputEditor({ value, onCommit }: { value: LinearInput; onC
       return;
     }
     setError(null);
-    const next = list.length >= LINEAR_CAPACITY ? list : [...list, v];
-    runOp(isStack ? { op: 'push', value: v } : { op: 'enqueue', value: v }, next);
+    runOp(isStack ? { op: 'push', value: v } : { op: 'enqueue', value: v });
   };
 
   const onPop = () => {
     setError(null);
-    const next = list.length === 0 ? list : list.slice(1);
-    runOp(isStack ? { op: 'pop' } : { op: 'dequeue' }, next);
+    runOp(isStack ? { op: 'pop' } : { op: 'dequeue' });
   };
 
   const onPeek = () => {
     setError(null);
-    runOp(isStack ? { op: 'peek' } : { op: 'front' }, list);
+    runOp(isStack ? { op: 'peek' } : { op: 'front' });
   };
 
   const onReset = () => {

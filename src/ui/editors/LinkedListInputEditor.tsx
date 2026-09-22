@@ -1,9 +1,11 @@
 /**
  * 单链表操作编辑器：建表 / 遍历 / 插入 / 删除 / 搜索，支持连续操作（链式）。
+ * 状态转移统一走 applyLinkedListOperation（STATE_CONSISTENCY_SPEC）。
  */
 import { useState } from 'react';
 import type { LinkedListInput } from '../../core/registry';
 import { LINEAR_CAPACITY } from '../../core/algorithms/linear/stackQueue';
+import { applyLinkedListOperation } from '../../core/editors/structureState';
 
 function parseItems(text: string): { ok: true; values: string[] } | { ok: false; error: string } {
   const parts = text.split(/[,，\s]+/).filter((p) => p !== '');
@@ -21,14 +23,16 @@ export function LinkedListInputEditor({ value, onCommit }: { value: LinkedListIn
   const [valText, setValText] = useState('X');
   const [error, setError] = useState<string | null>(null);
 
-  const commit = (operation: LinkedListInput['operation'], nextList: string[]) => {
-    setList(nextList);
+  // 三段式契约：before（闭包捕获）+ operation → after（reducer 计算，拒绝时不变）
+  const commit = (operation: LinkedListInput['operation']) => {
+    const { next } = applyLinkedListOperation(list, operation);
+    setList(next);
     onCommit({ type: 'linkedlist', initial: list, operation });
   };
 
   const onTraverse = () => {
     setError(null);
-    commit({ op: 'traverse' }, list);
+    commit({ op: 'traverse' });
   };
 
   const onInsert = () => {
@@ -47,8 +51,7 @@ export function LinkedListInputEditor({ value, onCommit }: { value: LinkedListIn
       return;
     }
     setError(null);
-    const next = [...list.slice(0, pos), v, ...list.slice(pos)];
-    commit({ op: 'insert', position: pos, value: v }, next);
+    commit({ op: 'insert', position: pos, value: v });
   };
 
   const onDelete = () => {
@@ -62,8 +65,7 @@ export function LinkedListInputEditor({ value, onCommit }: { value: LinkedListIn
       return;
     }
     setError(null);
-    const next = list.filter((_, i) => i !== pos);
-    commit({ op: 'delete', position: pos }, next);
+    commit({ op: 'delete', position: pos });
   };
 
   const onSearch = () => {
@@ -73,7 +75,7 @@ export function LinkedListInputEditor({ value, onCommit }: { value: LinkedListIn
       return;
     }
     setError(null);
-    commit({ op: 'search', value: v }, list);
+    commit({ op: 'search', value: v });
   };
 
   const onRebuild = () => {

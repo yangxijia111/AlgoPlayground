@@ -107,6 +107,19 @@ export function inOrderValues(root: BstNode | null): number[] {
   return out;
 }
 
+/** 先序遍历值序列。BST 的先序序列作为插入序列可唯一重建同构树（P11 状态一致性依据） */
+export function preOrderValues(root: BstNode | null): number[] {
+  const out: number[] = [];
+  const walk = (node: BstNode | null) => {
+    if (!node) return;
+    out.push(node.value);
+    walk(node.left);
+    walk(node.right);
+  };
+  walk(root);
+  return out;
+}
+
 /** 节点总数 */
 export function countNodes(root: BstNode | null): number {
   if (!root) return 0;
