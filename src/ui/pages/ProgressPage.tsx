@@ -15,6 +15,7 @@ import {
   recentlyViewed,
 } from '../../core/progress/summary';
 import { getAlgorithm } from '../../core/registry';
+import { DataCard } from '../components/DataCard';
 
 const LEVEL_CLASS: Record<MasteryLevel, string> = {
   'not-started': 'lvl-not-started',
@@ -155,6 +156,8 @@ export default function ProgressPage() {
           </div>
         )}
       </section>
+
+      <DataCard />
 
       <section className="card progress-section" aria-label="我的收藏">
         <h2>我的收藏</h2>

@@ -143,3 +143,11 @@
 - 算法页标题栏新增收藏星标（☆/★，aria-pressed）；收藏列表在 Progress 页「我的收藏」区展示并可跳转。
 - 新增 First Run Welcome：单屏欢迎卡片（平台是什么 / 推荐从 Learn 开始 / 播放器与新手模式提示），仅首次访问出现（settings.welcomeDone），可 Skip、Esc 关闭、键盘可操作；不做多屏强制 Tutorial。
 - 新增 6 项 UI 测试 + 4 项 E2E；累计 552 项单测 + 58 项 E2E 全绿。
+
+### P10-8 — Share / Import-Export / Graph Presets / Privacy ✅
+- 新增分享链接 `src/core/share/url.ts`：按输入类型编码（sort/search/linear/linkedlist/bst 用直观参数；graph 用 base64url JSON；recursion/dp/nqueens 用紧凑参数），可选附带步数 `s` 与 Beginner 标记 `m=b`；解码严格校验规模上限并复用 `entry.validate`，任何异常回退默认输入 + 一次性友好提示，绝不崩溃。
+- 算法页新增「🔗」分享按钮（复制含当前输入数据的链接到剪贴板）与分享参数应用逻辑（挂载时一次性解析）。
+- Progress 页新增数据管理：导出 JSON（algoplayground-learning-YYYYMMDD.json）、导入（版本 + schema 校验 + 覆盖前两步确认，绝不执行 JSON 代码）、重置（两步确认、只删 algoplayground-learning 键）。
+- 图编辑器新增图预设：按名称保存当前图（复用规模/自环/重复边校验）、下拉加载、删除；存入 learning store（上限 20 个）。
+- 新增 `docs/PRIVACY.md`：零数据收集声明、本地存储明细、分享链接隐私边界、开源可审计。
+- 新增 26 项单测 + 5 项 E2E；累计 578 项单测 + 62 项 E2E 全绿。

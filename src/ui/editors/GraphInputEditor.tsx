@@ -6,6 +6,8 @@ import { useRef, useState } from 'react';
 import type { GraphInput, GraphModel } from '../../core/registry';
 import { validateGraphInput } from '../../core/algorithms/graph/common';
 import { nextNodeId } from '../../core/algorithms/graph/presets';
+import { getLearningStore } from '../../core/storage/store';
+import { useLearningProfile } from '../hooks/useLearningProfile';
 
 type Mode = 'move' | 'addNode' | 'addEdge' | 'delete';
 
@@ -32,6 +34,9 @@ export function GraphInputEditor({ value, onCommit }: { value: GraphInput; onCom
   const [directed, setDirected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState('编辑完成后点击"运行算法"。');
+  const store = getLearningStore();
+  const profile = useLearningProfile();
+  const [presetName, setPresetName] = useState('');
   const svgRef = useRef<SVGSVGElement | null>(null);
   const draggingId = useRef<string | null>(null);
 
@@ -356,6 +361,79 @@ export function GraphInputEditor({ value, onCommit }: { value: GraphInput; onCom
           );
         })}
       </svg>
+
+      <div className="editor-row" role="group" aria-label="图预设">
+        <input
+          type="text"
+          className="preset-name-input"
+          aria-label="预设名称"
+          placeholder="预设名称"
+          value={presetName}
+          onChange={(e) => setPresetName(e.target.value)}
+          style={{ width: 110 }}
+        />
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            const name = presetName.trim();
+            if (name === '') {
+              setError('请先输入预设名称');
+              return;
+            }
+            const err = validateGraphInput({ type: 'graph', algorithm: value.algorithm, graph, start, end });
+            if (err) {
+              setError(`预设未保存：${err}`);
+              return;
+            }
+            setError(null);
+            store.saveGraphPreset(name, graph);
+            setPresetName('');
+            setHint(`预设「${name}」已保存`);
+          }}
+        >
+          保存当前图
+        </button>
+        {profile.savedGraphs.length > 0 ? (
+          <select
+            aria-label="加载已保存的图预设"
+            defaultValue=""
+            onChange={(e) => {
+              const id = e.target.value;
+              if (!id) return;
+              const preset = profile.savedGraphs.find((g) => g.id === id);
+              if (!preset) return;
+              const g = JSON.parse(JSON.stringify(preset.graph)) as GraphModel;
+              setGraph(g);
+              const firstNode = g.nodes[0]?.id ?? null;
+              setStart(firstNode);
+              setEnd(null);
+              setHint(`预设「${preset.name}」已加载，点击"运行算法"生效`);
+              e.target.value = '';
+            }}
+          >
+            <option value="">加载预设…</option>
+            {profile.savedGraphs.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {profile.savedGraphs.length > 0 ? (
+          <button
+            type="button"
+            className="btn"
+            aria-label="删除最近保存的图预设"
+            onClick={() => {
+              const last = profile.savedGraphs[profile.savedGraphs.length - 1];
+              if (last) store.deleteGraphPreset(last.id);
+            }}
+          >
+            删除预设
+          </button>
+        ) : null}
+      </div>
 
       {error ? (
         <p className="form-error" role="alert">

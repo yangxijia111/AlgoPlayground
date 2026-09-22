@@ -2440,3 +2440,74 @@ input[type='range'] {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* --------------------------------------------------------------------------
+   P10-8 Share / Data / Presets
+   -------------------------------------------------------------------------- */
+
+.share-btn {
+  min-width: 56px;
+}
+
+.share-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  font-size: 0.88rem;
+}
+
+.preset-name-input {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-raised);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.data-hint {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+}
+
+.data-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  border-color: var(--state-danger);
+  color: var(--state-danger);
+}
+
+.data-notice {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-accent-soft);
+  font-size: 0.88rem;
+}
+
+.data-import-confirm {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--state-active);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.data-import-confirm p {
+  margin: 0;
+  font-size: 0.88rem;
+}

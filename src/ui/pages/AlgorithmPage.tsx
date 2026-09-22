@@ -32,6 +32,8 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useLearningProfile } from '../hooks/useLearningProfile';
 import { explainStepBeginner, getBeginnerNote } from '../../core/learning/beginner';
 import { generatePredictQuestion } from '../../core/predict/engine';
+import { buildShareQuery, parseShareQuery } from '../../core/share/url';
+import { useSearchParams } from 'react-router-dom';
 import type { PredictQuestion } from '../../core/predict/engine';
 import { PredictCard } from '../components/PredictCard';
 import { QuizCard } from '../components/QuizCard';
@@ -195,6 +197,31 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
   );
 
   const bookmarked = profile.bookmarks.some((b) => b.targetId === entry.meta.id);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  // Share：挂载时解析 URL query 中的分享数据（无效则回退默认并提示一次）
+  const [searchParams] = useSearchParams();
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+  const shareAppliedRef = useRef(false);
+  useEffect(() => {
+    if (shareAppliedRef.current) return;
+    shareAppliedRef.current = true;
+    const search = searchParams.toString();
+    if (!search) return;
+    const result = parseShareQuery(input.type, search);
+    if (!result) {
+      setShareNotice('分享链接中的数据无效，已使用默认输入。');
+      return;
+    }
+    const err = entry.validate(result.input);
+    if (err) {
+      setShareNotice('分享链接中的数据无效，已使用默认输入。');
+      return;
+    }
+    setInput(result.input);
+    setSteps(collectSteps(entry.run(result.input)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const step = steps[snapshot.index];
   const stateSlot = step && isArrayFrame(step.frame) ? (
@@ -230,11 +257,37 @@ function AlgorithmPageInner({ entry }: { entry: AlgorithmEntry }) {
             >
               {bookmarked ? '★' : '☆'}
             </button>
+            <button
+              type="button"
+              className="btn btn-icon share-btn"
+              aria-label={shareCopied ? '链接已复制' : '复制分享链接'}
+              title="复制分享链接（含当前输入数据）"
+              onClick={() => {
+                const query = buildShareQuery(input, {
+                  step: snapshot.index,
+                  beginner: profile.settings.beginnerMode,
+                });
+                const url = `${window.location.origin}${window.location.pathname}#/${entry.meta.category}/${entry.meta.id}?${query}`;
+                void navigator.clipboard?.writeText(url).catch(() => undefined);
+                setShareCopied(true);
+                window.setTimeout(() => setShareCopied(false), 2000);
+              }}
+            >
+              {shareCopied ? '已复制 ✓' : '🔗'}
+            </button>
           </div>
           <InputEditor input={input} entry={entry} onCommit={commit} />
           {error ? (
             <p className="form-error form-error--page" role="alert">
               {error}
+            </p>
+          ) : null}
+          {shareNotice ? (
+            <p className="share-notice" role="status">
+              {shareNotice}
+              <button type="button" className="btn btn-icon" aria-label="关闭提示" onClick={() => setShareNotice(null)}>
+                ✕
+              </button>
             </p>
           ) : null}
         </section>
