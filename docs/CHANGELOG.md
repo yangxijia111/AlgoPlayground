@@ -161,3 +161,49 @@
 ## [1.1.0] — 2026-09-22
 
 首个学习平台版本（P10 Learning Experience）：在 v1.0.1 的 20 算法可视化 + 统一播放器 + 比较模式之上，构建完整学习闭环——学习路线（13 章 + 4 概念课）、Beginner Mode 逐步详解、Predict Next Step、Quiz（62 题）、Challenge（7 个动手挑战）、掌握度与进度（确定性规则）、笔记/收藏/欢迎引导、分享链接、数据导入导出/重置、图预设、递归树视图、DP 转移教学、复杂度探索器、隐私声明。全部学习功能本地优先、零数据收集。587 项单测 + 66 项 E2E 全绿；架构不变（Algorithm → Generator<VizStep> → Snapshot → PlaybackEngine → React UI）。
+
+## [Unreleased] — v1.1.1 开发中（P11 Deep Architecture & Correctness Hardening）
+
+### P11-0 — 审计与规格 ✅
+- 全库逐文件审计 v1.1.0，确认 14 项跨层问题（编辑器 shadow state 分叉、frame-diff 反推语义的教学错误、Share variant/step/beginner 丢失与 graph 上限、Storage 静默失败与跨标签页覆盖、测试盲区），产出 `docs/P11_ARCHITECTURE_AUDIT.md` 与 5 份规格（SEMANTIC_STEP_SPEC / STATE_CONSISTENCY_SPEC / SHARE_HYDRATION_SPEC / STORAGE_RELIABILITY_SPEC / CROSS_LAYER_TEST_SPEC）+ P11_ROADMAP。
+
+### P11-1 — 编辑器状态一致性 ✅
+- 修复 `LinearInputEditor` Stack Pop 方向错误：`[A,B,C]` pop 后编辑器曾显示 `[B,C]`（`slice(1)` 对栈错误），现为 `[A,B]`；栈/队列/链表/BST 编辑器统一改走纯 reducer。
+- 新增 `src/core/editors/structureState.ts`：`applyLinearOperation` / `applyLinkedListOperation` / `applyBSTOperation`（before + operation → after，与 Generator 终态严格一致）。
+- 修复 BST 删除的插入序列失真：双子节点删除改用「删除产物树的先序序列」表示（先序序列唯一重建同构 BST）；旧 `filter` 近似对双子删除产生不同构树（反例 [8,3,10,1,6,4,7,14] 删 3 已锁定测试）。
+- AlgorithmPage `inputEpoch`：分享恢复后编辑器重挂，消除 shadow state 分叉。33 项状态一致性契约测试锁定（reducer ⇄ Generator 终态 + 拒绝路径 + 连续操作链）。
+
+### P11-2/3 — Semantic Step Protocol 与全算法迁移 ✅
+- `VizStep` 新增可选 `semantic?: StepSemantic`（discriminated union，36 种类型 + ComparePurpose(8) + SwapReason(6) + WriteSource(4)）：语义层声明「这一步发生了什么、为什么」，与 frame（画什么）、description（给用户看）职责分离。
+- 全部 26 个算法条目按 P11-A~F 迁移（排序 6 / 搜索 2 / 线性 3 / 树 2 / 图 3 / 递归 3 / 回溯 1 / DP 2）：比较、交换、写回、pivot、区间收缩、结构操作、链表操作、树下降/输出、图访问/松弛/定型、递归调用返回、DP 填格、回溯放置全部携带语义 payload；init/transition/纯视觉步骤按 SPEC 允许缺失。
+
+### P11-4 — 学习系统 semantic-first ✅
+- Beginner 修复三处教学错误：① swap 不再全部解释为「冒泡」——按 SwapReason 分派（冒泡相邻逆序 / 选择最小值就位 / 快排分区搬运 / pivot 落位 / 堆顶取出 / heapify 下沉）；② BST 下降不再声称「每层排除一半」（平衡性质误述），改为平均 O(log n)、最坏退化链表 O(n)；③ Dijkstra relax 直接使用 semantic 的 from/to/oldDistance/newDistance/predecessor，禁止「猜最后一个有前驱的节点」。
+- Predict 出题 semantic-first：答案直接取自 `steps[i+1].semantic` payload（swap 对 / relax 新距离 / visit 节点 / dp 值 / call 标签），frame-diff 降级为兼容回退（relax 多目标时保守跳过——v1.1.0 曾可能猜错）。
+- Challenge `extractAction` 改 semantic-only：消除「高亮步(semantic) + 完成步(frame-diff)」重复计入同一操作。
+- Semantic Coverage Contract（26 算法 × 2 输入）：覆盖率阈值 0.30 + 每算法关键语义类型必备；12 项教学正确性测试 + 8 项 Predict/Challenge 质量测试。
+
+### P11-5 — Share 协议 v2 与 hydration ✅
+- Share 协议 v2（`v=2&d=<base64url>`）：单 payload 含 algorithmId/input/step/mode，graph 数组化紧凑编码（最大合法图 ≈1.1KB）；v1 链接完全向后兼容。
+- 修复 4 个 Share bug：① binary-search 分享恢复成 `variant:'linear'`（硬编码）——现按 URL 参数/条目默认恢复；② `s=<step>` 解析后被丢弃——现真实恢复（含 clamp：s=25 但 18 步 → 17，不崩溃）；③ `m=b` 丢弃——现恢复 Beginner（方案 A：仅本次浏览生效，不污染全局设置，用户手动切换后让位）；④ graph payload 2000 上限可被合法图突破（12 节点 24 边 base64 ≈2.8KB）——v1 上限放宽至 16KB 防御值 + v2 紧凑编码，v2 解码补齐边 id 唯一性/重复边检查。
+- 5 项最大合法图边界测试（v1/v2 双协议 roundtrip 深等）。
+
+### P11-6 — 学习数据可靠性 ✅
+- Schema v2：`STORAGE_VERSION` 1→2 + `revision`（每次成功写入 +1）+ v1 数据自动迁移（v1 导出文件仍可导入）。
+- `PersistenceStatus`（persistent/memory-only/write-failed/quota-exceeded/unavailable）：`flush()` 不再 `catch{}` 静默；NoteEditor「已保存 ✓」仅在真实持久化时显示，失败/内存模式显示真实状态；DataCard 显示持久化警告 banner。
+- 跨标签页一致性：`SyncTransport` 抽象（window storage event，测试注入 fake）+ 域级合并（quiz 取信息量大者 / notes 取新 / bookmarks·savedGraphs·activityDays 并集 / challenge 并集语义），拒绝整包 Last-Writer-Wins 覆盖——Tab A 答题 + Tab B 记笔记双向同步后两域都保留。
+- strict import（`strictValidateProfile`）：correct>total、completed=false 携带时间戳、非法日期、重复日期、坏图（严格图校验：12/24 上限、id 唯一、x/y∈[0,1]、自环、重复边、权重 1–99、directed boolean）明确失败并给出字段路径；lenient 加载路径修复 invariant + 真实日期（拒绝 2026-99-99 / 2026-02-31）+ 去重升序。
+- DataCard：`MAX_IMPORT_BYTES`=1MB 读取前拒绝。40 项可靠性测试（迁移/状态/双向同步/回声/损坏远端/域合并）。
+
+### P11-7 — 属性 / 契约 / 变异测试 ✅
+- fast-check 属性测试（10 项 ×100 cases）：栈 LIFO / 队列 FIFO / 链表 / BST 先序同构 + 中序升序 / share 全类型 roundtrip（含随机合法图）/ 排序 semantic↔帧一致。**属性测试发现并修复 2 个真实 bug**：linkedList Generator 对越界位置无防御（reducer 拒绝而 Generator 静默 clamp）；share v2 bst 空树被拒。
+- Metamorphic（12 项）：排序 ≡ JS sort 且 shuffle/reverse 等价、counters 单调、线性/二分查找正确性与步数约束、BFS visited=可达集合、Dijkstra 三角不等式、BST 中序=排序去重集、N 皇后解数基准（2/10/4/40/92）、fib-dp=朴素参考。
+- Cross-Layer Contract：26 条目统一 defaultInput→validate→run→share roundtrip→rerun 确定性 + share 输入 rerun 结果一致。
+
+### P11-8 — E2E ✅
+- 新增 13 项 E2E：Stack 连续状态链（pop 后 [A,B] 且可视化一致）/ binary share（v1+v2）/ share step（含超界 clamp）/ beginner share（session 生效 + 全局不污染）/ 最大合法图 share（v2+v1）/ storage 写失败可见 / malformed import（correct>total、2026-02-31、非法图）明确拒绝 + 合法导入 / 跨标签页双 page 域保留。全量 79 项 E2E 通过（66 旧 + 13 新）。
+- 覆盖率强化：validate/防御/兼容 fallback 全分支补测；`src/core` 覆盖率 98.59% statements / 90.29% branches / 99.69% functions / 98.59% lines（阈值 98/90/98/98）。
+
+## [1.1.1] — 2026-09-23
+
+深层正确性与架构强化版本（P11）：不新增算法，专注跨层状态一致性、一等语义层与学习数据可靠性。修复 7 个真实 bug（Stack pop 编辑器分叉、BST 删除表示失真、Beginner 三处教学错误、share variant/step/beginner 丢失、graph 分享上限、linkedList 越界防御、bst 空树分享）；新增 StepSemantic 判别联合（36 类型）并迁移全部 26 算法；Beginner/Predict/Challenge 全面 semantic-first；Share 协议 v2（v1 兼容）；Storage schema v2（revision + 迁移 + PersistenceStatus + 跨标签页域合并 + strict import + 真实日期校验）；引入 fast-check 属性测试 + 跨层契约 + metamorphic 测试 + Semantic Coverage Contract。846 项单测（原 587 全部保留）+ 79 项 E2E（原 66 全部保留）；core 覆盖率 98.59/90.29/99.69/98.59。v1.0.0/v1.0.1/v1.1.0 tag 与 v1 链接、v1 localStorage 数据、v1 导出文件全部保持可用。
