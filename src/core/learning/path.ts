@@ -97,11 +97,13 @@ export const LEARNING_SECTIONS: LearningSection[] = [
   {
     id: 'graph',
     name: '10. 图',
-    blurb: '节点与边的世界：BFS 逐层扩散、DFS 一路深入、Dijkstra 求最短路。',
+    blurb: '节点与边的世界：BFS 逐层扩散、DFS 一路深入、Dijkstra 求最短路，再看拓扑排序与最小生成树。',
     lessons: [
       { id: 'bfs', ref: { kind: 'algorithm', algorithmId: 'bfs' } },
       { id: 'dfs', ref: { kind: 'algorithm', algorithmId: 'dfs' } },
       { id: 'dijkstra', ref: { kind: 'algorithm', algorithmId: 'dijkstra' } },
+      { id: 'topo-sort', ref: { kind: 'algorithm', algorithmId: 'topo-sort' } },
+      { id: 'prim', ref: { kind: 'algorithm', algorithmId: 'prim' } },
     ],
   },
   {

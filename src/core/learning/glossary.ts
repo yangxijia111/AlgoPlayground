@@ -43,7 +43,12 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
   { id: 'edge', term: '边', en: 'edge', definition: '连接两个节点的关系，可以带方向（有向图）和权重（如路程、耗时）。', related: ['dijkstra', 'bfs'] },
   { id: 'call-stack', term: '调用栈', en: 'call stack', definition: '记录「哪些函数正在执行」的栈。每调用一次压入一帧，返回时弹出；递归深度就是栈的最大高度。', related: ['factorial', 'hanoi'] },
   { id: 'comparison-sort', term: '比较排序', en: 'comparison sort', definition: '通过比较两个元素大小决定顺序的排序。任何比较排序最快也只能 O(n log n)。', related: ['bubble-sort', 'merge-sort'] },
-  { id: 'greedy', term: '贪心', en: 'greedy', definition: '每步都选当前看起来最优的策略，不回头。Dijkstra 的「每次定型最近节点」就是贪心；并非所有问题贪心都能得到全局最优。', related: ['dijkstra', 'selection-sort'] },
+  { id: 'greedy', term: '贪心', en: 'greedy', definition: '每步都选当前看起来最优的策略，不回头。Dijkstra 的「每次定型最近节点」就是贪心；并非所有问题贪心都能得到全局最优。', related: ['dijkstra', 'selection-sort', 'prim'] },
+  { id: 'dag', term: '有向无环图（DAG）', en: 'directed acyclic graph', definition: '边都有方向、且沿边走不会回到起点的图。「无环」使它存在拓扑序，这是课程表、构建依赖等调度问题的基础模型。', example: '课程先修关系：数据结构 ← 程序设计基础，不会互相成为对方的前置。', related: ['topo-sort'] },
+  { id: 'indegree', term: '入度 / 出度', en: 'in-degree / out-degree', definition: '有向图中指向某节点的边数是它的入度，从它指出去的边数是出度。入度 = 前置依赖数量。', example: '拓扑排序反复取入度 0 的节点输出。', related: ['topo-sort'] },
+  { id: 'topological-order', term: '拓扑序', en: 'topological order', definition: 'DAG 节点的一个线性排列，保证每条边 u→v 都满足 u 在 v 之前。拓扑序通常不唯一：同一时刻多个入度 0 的节点选谁都合法。', example: '穿衣服的顺序：袜子 → 鞋，但袜子和上衣谁先都行。', related: ['topo-sort'] },
+  { id: 'mst', term: '最小生成树', en: 'minimum spanning tree (MST)', definition: '连通图的生成树中边权总和最小的一棵。生成树恰好用 V−1 条边连通全部 V 个节点且无环。', example: '用最少的电缆把所有村庄连通（电缆总价最低）。', related: ['prim'] },
+  { id: 'cut-edge', term: '割边', en: 'cut edge', definition: '连接「树内」与「树外」两个集合的边。Prim 每轮在全部割边中选权重最小的一条；割边性质保证这个贪心选择可以出现在某棵最小生成树中。', related: ['prim'] },
 ];
 
 export function getTerm(id: string): GlossaryTerm | undefined {

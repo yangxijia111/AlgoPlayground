@@ -34,7 +34,9 @@ function semanticMatchesAction(s: VizStep['semantic'], a: ChallengeAction): bool
       return (
         (s.type === 'visit-node' && s.nodeId === a.value) ||
         (s.type === 'tree-descend' && String(s.nodeValue) === a.value) ||
-        (s.type === 'compare' && s.purpose === 'binary-mid' && String(s.values[0]) === a.value)
+        (s.type === 'compare' && s.purpose === 'binary-mid' && String(s.values[0]) === a.value) ||
+        (s.type === 'mst-accept' && s.nodeId === a.value) ||
+        (s.type === 'graph-finalize' && s.nodeId === a.value)
       );
     case 'op':
       return (
@@ -127,6 +129,68 @@ describe('Predict 质量测试：answer 与 semantic payload 一致', () => {
       expect(q).not.toBeNull();
       if (q!.kind === 'next-visit') expect(q!.options[q!.answerIndex]).toBe(sem.nodeId);
     }
+  });
+
+  it('write 题（P12 修复 P11 Limitation 5）：answer 是 semantic.value，merge/insertion 均出题', () => {
+    // 归并：足够的 write 步骤且数组值多样（干扰项可构造）
+    const mergeSteps = run('merge-sort', { type: 'sort', array: [6, 2, 9, 4, 7, 1] });
+    let mergeChecked = 0;
+    for (let i = 0; i + 1 < mergeSteps.length; i++) {
+      const sem = mergeSteps[i + 1]!.semantic;
+      if (!sem || sem.type !== 'write') continue;
+      const q = generatePredictQuestion(mergeSteps, i);
+      expect(q).not.toBeNull();
+      if (q!.kind === 'next-write') {
+        expect(q!.options[q!.answerIndex]).toBe(String(sem.value));
+        expect(q!.prompt).toContain(String(sem.index));
+        expect(new Set(q!.options).size).toBe(q!.options.length); // 选项互异
+        mergeChecked++;
+      }
+    }
+    expect(mergeChecked).toBeGreaterThanOrEqual(2);
+
+    // 插入排序：shift/place 写回同样出题
+    const insSteps = run('insertion-sort', { type: 'sort', array: [3, 9, 1, 7, 5] });
+    let insChecked = 0;
+    for (let i = 0; i + 1 < insSteps.length; i++) {
+      const sem = insSteps[i + 1]!.semantic;
+      if (!sem || sem.type !== 'write') continue;
+      const q = generatePredictQuestion(insSteps, i);
+      expect(q).not.toBeNull();
+      if (q!.kind === 'next-write') {
+        expect(q!.options[q!.answerIndex]).toBe(String(sem.value));
+        insChecked++;
+      }
+    }
+    expect(insChecked).toBeGreaterThanOrEqual(2);
+  });
+
+  it('mst-accept / mst-relax 题：answer 分别是 nodeId 与 newKey（Prim）', () => {
+    const steps = run('prim', getAlgorithm('prim')!.defaultInput);
+    let acceptChecked = 0;
+    let relaxChecked = 0;
+    for (let i = 0; i + 1 < steps.length; i++) {
+      const sem = steps[i + 1]!.semantic;
+      if (!sem) continue;
+      if (sem.type === 'mst-accept') {
+        const q = generatePredictQuestion(steps, i);
+        expect(q).not.toBeNull();
+        if (q!.kind === 'next-mst-accept') {
+          expect(q!.options[q!.answerIndex]).toBe(sem.nodeId);
+          acceptChecked++;
+        }
+      }
+      if (sem.type === 'mst-relax') {
+        const q = generatePredictQuestion(steps, i);
+        expect(q).not.toBeNull();
+        if (q!.kind === 'next-mst-relax') {
+          expect(q!.options[q!.answerIndex]).toBe(String(sem.newKey));
+          relaxChecked++;
+        }
+      }
+    }
+    expect(acceptChecked).toBeGreaterThanOrEqual(3);
+    expect(relaxChecked).toBeGreaterThanOrEqual(3);
   });
 
   it('dp-fill 题：answer 是 semantic.value', () => {

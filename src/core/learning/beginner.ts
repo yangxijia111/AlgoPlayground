@@ -338,6 +338,12 @@ function explainSemantic(cur: VizStep, s: StepSemantic): string | null {
           `BFS 用队列：先入队的先访问，所以按「离起点的层数」逐层扩散——这保证无权图中先被访问的路径最短。`,
         ].join('');
       }
+      if (s.algorithm === 'topo-sort') {
+        return [
+          `节点 ${s.nodeId} 出队并加入拓扑序：它的入度已经是 0，所有前置依赖都完成了。`,
+          `拓扑序不是唯一的——同一时刻队列里可能有多个入度 0 的节点，选哪个都合法（本实现按字母序）。`,
+        ].join('');
+      }
       return [
         `节点 ${s.nodeId} 出栈并访问。`,
         `DFS 用栈：后压入的先访问，所以沿一条路走到底再回头。`,
@@ -362,6 +368,41 @@ function explainSemantic(cur: VizStep, s: StepSemantic): string | null {
       return [
         `选取未确定节点中距离最小者 ${s.nodeId}（dist=${s.distance}）并「定型」：它的最短距离已经确定，不再改变。`,
         `Dijkstra 的贪心正确性依赖无负权边：更远的路不可能绕回来更短。`,
+      ].join('');
+    }
+    case 'graph-degree-dec': {
+      const zeroText =
+        s.after === 0
+          ? `入度归零！${s.to} 的前置依赖全部完成，进入待处理队列，之后可以被输出。`
+          : `还剩 ${s.after} 个前置依赖未完成，${s.to} 暂时不能输出。`;
+      return [
+        `节点 ${s.from} 已输出，处理它的出边 ${s.from}→${s.to}：相当于「${s.to} 的一个前置依赖完成了」，入度 ${s.before}→${s.after}。`,
+        zeroText,
+      ].join('');
+    }
+    case 'cycle-detected': {
+      return [
+        `检测到环：节点 ${s.remaining.join('、')} 的入度都大于 0，它们（直接或间接）互相等待对方先完成，谁也无法归零。`,
+        `含环的有向图不存在拓扑序——这正是 Kahn 算法顺便完成环检测的原理：能全部输出 ⇔ 无环。`,
+      ].join('');
+    }
+    case 'mst-examine': {
+      return [
+        `考察割边 ${s.from}—${s.to}（w=${s.weight}）：不小于当前 key[${s.to}]=${s.currentKey}，${s.to} 已有更便宜的连入方式，不更新。`,
+        `Prim 的 key 与 Dijkstra 的 dist 不同：key 只比较单条边本身的权重，不做路径累加。`,
+      ].join('');
+    }
+    case 'mst-relax': {
+      const oldText = s.oldKey === null ? '∞（还没有边连到树）' : String(s.oldKey);
+      return [
+        `更便宜的连入方式：割边 ${s.from}—${s.to}（w=${s.weight}）< 当前 key[${s.to}]=${oldText}，key[${s.to}] 更新为 ${s.weight}。`,
+        `注意与 Dijkstra 松弛的区别：这里不加 dist[${s.from}]——生成树只关心「这条边多贵」，不是「绕到这里的路径多长」。`,
+      ].join('');
+    }
+    case 'mst-accept': {
+      return [
+        `割边中最小的一条：${s.via}—${s.nodeId}（w=${s.weight}），${s.nodeId} 连入树，当前树总权重 ${s.totalWeight}。`,
+        `割边性质保证这条选择是安全的：任何一棵最小生成树都可以调整成包含这条边的样子。`,
       ].join('');
     }
     case 'call':

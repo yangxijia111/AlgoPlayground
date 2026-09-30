@@ -55,7 +55,7 @@ describe('概念课内容', () => {
 });
 
 describe('学习路线数据', () => {
-  it('13 章且全部 22 个算法都被覆盖（恰好一次）', () => {
+  it('13 章且全部 24 个算法都被覆盖（恰好一次）', () => {
     expect(LEARNING_SECTIONS).toHaveLength(13);
     const referenced = allLessons()
       .filter((l) => l.ref.kind === 'algorithm')

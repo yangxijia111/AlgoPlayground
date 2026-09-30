@@ -1,5 +1,5 @@
 /**
- * 首批 7 个挑战定义（docs/CHALLENGE_SPEC.md §3）。
+ * 首批 12 个挑战定义（docs/CHALLENGE_SPEC.md §3，P12 由 7 扩展）。
  * 全部复用现有 Generator 提取期望序列：排序取「可交互步」（比较/交换），
  * 结构类拼接多次单操作运行，树/图取「被访问节点」。
  * P11 起 extractAction 优先读 VizStep.semantic（semantic → ChallengeAction），
@@ -11,6 +11,7 @@ import type { VizStep } from './types';
 import { collectSteps } from '../step/step';
 import { getAlgorithm } from '../registry';
 import { bfsDefaultInput } from './bfsPreset';
+import { defaultGraph, defaultPrimGraph, defaultTopoGraph } from '../algorithms/graph/presets';
 
 const run = (algoId: string, input: AlgorithmInput): VizStep[] => {
   const entry = getAlgorithm(algoId);
@@ -49,6 +50,16 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
     buildSteps: () => run('selection-sort', { type: 'sort', array: [7, 3, 5, 2] }),
     extractAction: extractSortAction,
     takeActions: 4, // 比较(0,1) 比较(1,2) 比较(1,3) 交换(0,3)
+  },
+  {
+    id: 'quick-partition',
+    algorithmId: 'quick-sort',
+    title: '快排分区一轮',
+    goal: '对数组 [5, 3, 8, 1, 9, 2] 完成第一轮分区（pivot 取末元素 2）：按顺序点击每次比较，逆序搬运（交换）发生时也要点。',
+    ui: 'sort',
+    buildSteps: () => run('quick-sort', { type: 'sort', array: [5, 3, 8, 1, 9, 2] }),
+    extractAction: extractSortAction,
+    takeActions: 7, // 5 次比较（quick-scan）+ 2 次交换（搬运 0,3 与 pivot 落位 1,5）
   },
   {
     id: 'binary-search',
@@ -138,6 +149,58 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
     extractAction: (cur) => {
       const s = cur.semantic;
       if (!s || s.type !== 'visit-node') return null;
+      return { kind: 'pick', value: s.nodeId };
+    },
+  },
+  {
+    id: 'dfs-order',
+    algorithmId: 'dfs',
+    title: 'DFS 访问顺序',
+    goal: '从 A 出发对同一张图做深度优先搜索：按 DFS 的访问顺序依次点击节点（沿一条路走到底再回头，邻居按字母序）。',
+    ui: 'graph',
+    buildSteps: () => run('dfs', { type: 'graph', algorithm: 'dfs', graph: defaultGraph(), start: 'A', end: null }),
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'visit-node' || s.algorithm !== 'dfs') return null;
+      return { kind: 'pick', value: s.nodeId };
+    },
+  },
+  {
+    id: 'topo-order',
+    algorithmId: 'topo-sort',
+    title: '拓扑排序顺序',
+    goal: '对课程先修图做拓扑排序：只有「当前入度为 0」的节点才能输出。按算法的输出顺序依次点击节点（同时归零按字母序）。',
+    ui: 'graph',
+    buildSteps: () => run('topo-sort', { type: 'graph', algorithm: 'topo-sort', graph: defaultTopoGraph(), start: null, end: null }),
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'visit-node' || s.algorithm !== 'topo-sort') return null;
+      return { kind: 'pick', value: s.nodeId };
+    },
+  },
+  {
+    id: 'prim-tree',
+    algorithmId: 'prim',
+    title: 'Prim 生长顺序',
+    goal: '从 A 开始运行 Prim：每轮割边（树→非树）中权重最小的一条把新节点连入树。按节点连入树的顺序依次点击。',
+    ui: 'graph',
+    buildSteps: () => run('prim', { type: 'graph', algorithm: 'prim', graph: defaultPrimGraph(), start: 'A', end: null }),
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'mst-accept') return null;
+      return { kind: 'pick', value: s.nodeId };
+    },
+  },
+  {
+    id: 'dijkstra-finalize',
+    algorithmId: 'dijkstra',
+    title: 'Dijkstra 定型顺序',
+    goal: '从 A 运行 Dijkstra：每轮把「未确定集中距离最小」的节点定型。按定型顺序依次点击节点（同距按字母序）。',
+    ui: 'graph',
+    buildSteps: () => run('dijkstra', { type: 'graph', algorithm: 'dijkstra', graph: defaultGraph(), start: 'A', end: null }),
+    extractAction: (cur) => {
+      const s = cur.semantic;
+      if (!s || s.type !== 'graph-finalize') return null;
       return { kind: 'pick', value: s.nodeId };
     },
   },

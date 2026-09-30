@@ -196,19 +196,40 @@ function semanticQuestion(cur: VizStep, next: VizStep, s: StepSemantic): Predict
         .map((x) => String(x.value));
       return buildOptions(String(s.value), distractors, 'next-tree-output', '下一个加入输出序列的值是？', baseExplain, 'tree-output');
     }
+    case 'write': {
+      // P12（P11 Limitation 5 修复）：归并写回 / 插入落位出「写入什么值」题
+      // 干扰项：旧值、数组内其他值、±1；与正确答案相同的候选由 buildOptions 去重跳过
+      const cf = isArrayFrame(cur.frame) ? cur.frame : null;
+      if (!cf) return null;
+      const distractors: string[] = [];
+      const old = cf.values[s.index];
+      if (old !== undefined && old !== s.value) distractors.push(String(old));
+      for (const v of cf.values) {
+        if (distractors.length >= 2) break;
+        if (v !== s.value && !distractors.includes(String(v))) distractors.push(String(v));
+      }
+      distractors.push(String(s.value + 1), String(Math.max(0, s.value - 1)));
+      return buildOptions(
+        String(s.value),
+        distractors,
+        'next-write',
+        `位置 ${s.index} 将被写入什么值？`,
+        baseExplain,
+        'write',
+      );
+    }
     case 'visit-node': {
       const cf = isGraphFrame(cur.frame) ? cur.frame : null;
       if (!cf) return null;
       const distractors = cf.frontier.filter((x) => x.id !== s.nodeId).map((x) => x.id);
       distractors.push(...cf.nodes.filter((x) => x.id !== s.nodeId).map((x) => x.id));
-      return buildOptions(
-        s.nodeId,
-        distractors,
-        'next-visit',
-        s.algorithm === 'bfs' ? `BFS 使用队列：下一个被访问的节点将是哪个？` : `DFS 使用栈：下一个被访问的节点将是哪个？`,
-        baseExplain,
-        'visit',
-      );
+      const prompt =
+        s.algorithm === 'bfs'
+          ? `BFS 使用队列：下一个被访问的节点将是哪个？`
+          : s.algorithm === 'topo-sort'
+            ? `拓扑排序：下一个出队加入拓扑序的节点（当前入度已归零者）是哪个？`
+            : `DFS 使用栈：下一个被访问的节点将是哪个？`;
+      return buildOptions(s.nodeId, distractors, 'next-visit', prompt, baseExplain, 'visit');
     }
     case 'frontier-add': {
       const cf = isGraphFrame(cur.frame) ? cur.frame : null;
@@ -246,6 +267,35 @@ function semanticQuestion(cur: VizStep, next: VizStep, s: StepSemantic): Predict
         'visit',
       );
     }
+    case 'mst-accept': {
+      const cf = isGraphFrame(cur.frame) ? cur.frame : null;
+      if (!cf) return null;
+      // 干扰项：候选集（按 key 升序的未入树节点）优先，再补树外全部节点
+      const distractors = cf.frontier.filter((x) => x.id !== s.nodeId).map((x) => x.id);
+      distractors.push(...cf.nodes.filter((x) => x.id !== s.nodeId && x.state !== 'success').map((x) => x.id));
+      return buildOptions(
+        s.nodeId,
+        distractors,
+        'next-mst-accept',
+        `Prim：下一个连入树的节点（割边中权重最小者对应的节点）是哪个？`,
+        baseExplain,
+        'mst-accept',
+      );
+    }
+    case 'mst-relax': {
+      const cf = isGraphFrame(cur.frame) ? cur.frame : null;
+      const oldLabel = s.oldKey === null ? '∞' : String(s.oldKey);
+      const distractors: string[] = cf ? cf.nodes.filter((m) => m.id !== s.to && m.distance !== null).map((m) => String(m.distance)) : [];
+      distractors.push(oldLabel, '∞', '0', String(s.newKey + 1), String(Math.max(1, s.newKey - 1)));
+      return buildOptions(
+        String(s.newKey),
+        distractors,
+        'next-mst-relax',
+        `Prim 考察割边 ${s.from}—${s.to}（w=${s.weight}）：key[${s.to}] 将更新为多少？（当前为 ${oldLabel}，只看这条边本身的权重）`,
+        baseExplain,
+        'mst-relax',
+      );
+    }
     case 'dp-fill': {
       const distractors: string[] = [];
       const cf = isDPFrame(cur.frame) ? cur.frame : null;
@@ -267,7 +317,6 @@ function semanticQuestion(cur: VizStep, next: VizStep, s: StepSemantic): Predict
       return buildOptions(s.label, distractors, 'next-call', '下一个发生的函数调用是？', baseExplain, 'call');
     }
     // 以下类型不适合出预测题（结果性/过程性/选项不足），回退 frame-diff 或不出题
-    case 'write':
     case 'pivot-select':
     case 'found':
     case 'not-found':
@@ -282,6 +331,9 @@ function semanticQuestion(cur: VizStep, next: VizStep, s: StepSemantic): Predict
     case 'tree-delete':
     case 'tree-enqueue':
     case 'graph-examine':
+    case 'mst-examine':
+    case 'graph-degree-dec':
+    case 'cycle-detected':
     case 'return':
     case 'move':
     case 'try-place':
