@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Challenge Mode', () => {
-  test('挑战列表显示 7 个挑战', async ({ page }) => {
+  test("挑战列表显示 12 个挑战", async ({ page }) => {
     await page.goto('/#/challenges');
     await expect(page.getByRole('heading', { name: '挑战', exact: true })).toBeVisible();
     const cards = page.locator('.challenge-card');
-    await expect(cards).toHaveCount(7);
+    await expect(cards).toHaveCount(12);
   });
 
   test('冒泡一轮：正确序列通关，记录入库', async ({ page }) => {

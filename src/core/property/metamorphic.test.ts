@@ -227,6 +227,66 @@ describe('Metamorphic：图', () => {
       { numRuns: 30 },
     );
   });
+
+  it('拓扑排序：DAG 全部边反向后仍是 DAG，输出仍满足（反向后的）边序约束', () => {
+    const dag = (): GraphInput => ({
+      type: 'graph',
+      algorithm: 'topo-sort',
+      graph: {
+        nodes: [
+          { id: 'A', x: 0.1, y: 0.2 },
+          { id: 'B', x: 0.4, y: 0.2 },
+          { id: 'C', x: 0.7, y: 0.2 },
+          { id: 'D', x: 0.25, y: 0.8 },
+          { id: 'E', x: 0.6, y: 0.8 },
+        ],
+        edges: [
+          { id: 'e1', from: 'A', to: 'B', directed: true, weight: 1 },
+          { id: 'e2', from: 'A', to: 'D', directed: true, weight: 1 },
+          { id: 'e3', from: 'B', to: 'C', directed: true, weight: 1 },
+          { id: 'e4', from: 'D', to: 'C', directed: true, weight: 1 },
+          { id: 'e5', from: 'C', to: 'E', directed: true, weight: 1 },
+        ],
+      },
+      start: null,
+      end: null,
+    });
+    const outputOf = (input: GraphInput): string[] =>
+      collectSteps(getAlgorithm('topo-sort')!.run(input))
+        .map((s) => (s.semantic?.type === 'visit-node' && s.semantic.algorithm === 'topo-sort' ? s.semantic.nodeId : null))
+        .filter((x): x is string => x !== null);
+    const forward = outputOf(dag());
+    // 原 DAG：A 最先，E 最后
+    expect(forward[0]).toBe('A');
+    expect(forward[forward.length - 1]).toBe('E');
+    // 反转全部边：顺序约束镜像，输出也镜像（E 最先、A 最后）
+    const reversed = dag();
+    reversed.graph = {
+      ...reversed.graph,
+      edges: reversed.graph.edges.map((e) => ({ ...e, from: e.to, to: e.from })),
+    };
+    const backward = outputOf(reversed);
+    expect(backward[0]).toBe('E');
+    expect(backward[backward.length - 1]).toBe('A');
+    // 两次运行结果都满足各自边序
+    const posF = new Map(forward.map((id, i) => [id, i]));
+    for (const e of dag().graph.edges) expect(posF.get(e.from)!).toBeLessThan(posF.get(e.to)!);
+    const posB = new Map(backward.map((id, i) => [id, i]));
+    for (const e of reversed.graph.edges) expect(posB.get(e.from)!).toBeLessThan(posB.get(e.to)!);
+  });
+
+  it('Prim：同一图换起点，最小生成树总权重不变', () => {
+    const base = getAlgorithm('prim')!.defaultInput as GraphInput;
+    const totalOf = (start: string): number => {
+      const steps = collectSteps(getAlgorithm('prim')!.run({ ...base, start }));
+      const accepts = steps
+        .map((s) => s.semantic)
+        .filter((s) => s?.type === 'mst-accept') as { totalWeight: number }[];
+      return accepts[accepts.length - 1]!.totalWeight;
+    };
+    const totals = base.graph.nodes.map((n) => totalOf(n.id));
+    expect(new Set(totals).size).toBe(1); // MST 权重与起点无关（连通图）
+  });
 });
 
 // ---------------------------------------------------------------------------
