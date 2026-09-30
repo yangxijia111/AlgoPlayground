@@ -28,6 +28,48 @@ export function defaultGraph(): GraphModel {
 
 const LABELS = 'ABCDEFGHIJKL';
 
+/** 拓扑排序默认演示图：6 节点有向无环（课程先修关系），坐标按层级布置 */
+export function defaultTopoGraph(): GraphModel {
+  return {
+    nodes: [
+      { id: 'A', x: 0.1, y: 0.5 },
+      { id: 'B', x: 0.37, y: 0.18 },
+      { id: 'C', x: 0.37, y: 0.82 },
+      { id: 'D', x: 0.65, y: 0.5 },
+      { id: 'E', x: 0.9, y: 0.5 },
+    ],
+    edges: [
+      { id: 'e1', from: 'A', to: 'B', directed: true, weight: 1 },
+      { id: 'e2', from: 'A', to: 'C', directed: true, weight: 1 },
+      { id: 'e3', from: 'B', to: 'D', directed: true, weight: 1 },
+      { id: 'e4', from: 'C', to: 'D', directed: true, weight: 1 },
+      { id: 'e5', from: 'D', to: 'E', directed: true, weight: 1 },
+    ],
+  };
+}
+
+/** Prim 默认演示图：6 节点带权无向连通图 */
+export function defaultPrimGraph(): GraphModel {
+  return {
+    nodes: [
+      { id: 'A', x: 0.5, y: 0.1 },
+      { id: 'B', x: 0.12, y: 0.4 },
+      { id: 'C', x: 0.88, y: 0.4 },
+      { id: 'D', x: 0.3, y: 0.85 },
+      { id: 'E', x: 0.7, y: 0.85 },
+    ],
+    edges: [
+      { id: 'e1', from: 'A', to: 'B', directed: false, weight: 3 },
+      { id: 'e2', from: 'A', to: 'C', directed: false, weight: 7 },
+      { id: 'e3', from: 'B', to: 'C', directed: false, weight: 5 },
+      { id: 'e4', from: 'B', to: 'D', directed: false, weight: 6 },
+      { id: 'e5', from: 'C', to: 'E', directed: false, weight: 4 },
+      { id: 'e6', from: 'D', to: 'E', directed: false, weight: 2 },
+    ],
+  };
+}
+
+
 /** 下一个可用节点 id（A…L） */
 export function nextNodeId(graph: GraphModel): string | null {
   for (const ch of LABELS) {

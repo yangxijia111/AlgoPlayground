@@ -1,16 +1,28 @@
 /**
- * 图算法注册条目：BFS / DFS / Dijkstra（共享图编辑器）。
+ * 图算法注册条目：BFS / DFS / Dijkstra / 拓扑排序 / Prim（共享图编辑器）。
  */
 import type { AlgorithmEntry, AlgorithmInput, GraphAlgorithm, GraphInput } from '../../registry';
 import { validateGraphInput } from './common';
-import { defaultGraph } from './presets';
+import { defaultGraph, defaultPrimGraph, defaultTopoGraph } from './presets';
 import { bfsGen, dfsGen } from './traversals';
 import { dijkstraGen } from './dijkstra';
+import { topoSortGen } from './topoSort';
+import { primGen } from './primMst';
 
 const RUNNERS: Record<GraphAlgorithm, (input: GraphInput) => Generator<import('../../step/step').VizStep, void, void>> = {
   bfs: bfsGen,
   dfs: dfsGen,
   dijkstra: dijkstraGen,
+  'topo-sort': topoSortGen,
+  prim: primGen,
+};
+
+const DEFAULT_GRAPHS: Record<GraphAlgorithm, () => import('../../registry').GraphModel> = {
+  bfs: defaultGraph,
+  dfs: defaultGraph,
+  dijkstra: defaultGraph,
+  'topo-sort': defaultTopoGraph,
+  prim: defaultPrimGraph,
 };
 
 function graphEntry(
@@ -23,8 +35,8 @@ function graphEntry(
     defaultInput: {
       type: 'graph',
       algorithm,
-      graph: defaultGraph(),
-      start: 'A',
+      graph: DEFAULT_GRAPHS[algorithm](),
+      start: algorithm === 'topo-sort' ? null : 'A',
       end: endDefault,
     },
     validate: (input: AlgorithmInput) => (input.type === 'graph' ? validateGraphInput(input) : '输入类型错误'),
@@ -95,6 +107,48 @@ const entries: AlgorithmEntry[] = [
       '      if dist[u] + w < dist[v] then',
       '        dist[v] ← dist[u]+w；pred[v] ← u   // 松弛',
       '  end while',
+      'end procedure',
+    ],
+  }, null),
+  graphEntry('topo-sort', {
+    id: 'topo-sort',
+    name: '拓扑排序',
+    enName: 'Topological Sort (Kahn)',
+    category: 'graph',
+    purpose: '给有向无环图（DAG）的节点排一个线性顺序，保证每条边 u→v 都满足 u 在 v 之前；若图含环则报告无法完成。',
+    coreIdea: 'Kahn 算法：入度为 0 的节点没有前置依赖，可以立即输出；输出后删掉它的出边（邻居入度减一），产生新的入度 0 节点。若最终有节点未输出，说明它们互相等待——图含环。课程先修、构建依赖、任务调度都是这个模型。',
+    timeComplexity: 'O(V + E)',
+    spaceComplexity: 'O(V)',
+    pseudocode: [
+      'procedure topoSort(G)',
+      '  计算每个节点的入度 indeg[v]',
+      '  所有 indeg=0 的节点入队（按字母序）',
+      '  while 队列非空 do',
+      '    u ← 出队；输出 u 加入拓扑序',
+      '    for v ∈ u 的出边邻居 do',
+      '      indeg[v] ← indeg[v] − 1',
+      '      if indeg[v] = 0 then v 入队',
+      '  if 已输出节点数 < |V| then 图含环',
+      'end procedure',
+    ],
+  }, null),
+  graphEntry('prim', {
+    id: 'prim',
+    name: 'Prim 最小生成树',
+    enName: "Prim's Algorithm",
+    category: 'graph',
+    purpose: '求带权连通图的最小生成树：用 V−1 条边把所有节点连通，且总权重最小（网络布线、道路规划等场景）。',
+    coreIdea: '贪心生长：树从起点开始，每轮在「树内 → 树外」的所有割边中选权重最小的一条，把新节点连入树。key[v] 记录 v 连入树的最便宜边权，节点入树后用它的边更新邻居的 key。与 Dijkstra 的区别：key 不做路径累加，只比较单条边本身的权重。',
+    timeComplexity: 'O(V²)（本实现的简单选择版）',
+    spaceComplexity: 'O(V)',
+    pseudocode: [
+      'procedure prim(G, s)',
+      '  树 ← {s}；key[s]=0，其余 key ← ∞',
+      '  while 还有未入树节点 do',
+      '    u ← 割边（树→非树）中权重最小者对应的节点',
+      '    把 u 连入树（选中那条最小割边）',
+      '    for v ∈ u 的未入树邻居 do',
+      '      if w(u,v) < key[v] then key[v] ← w(u,v)；parent[v] ← u',
       'end procedure',
     ],
   }, null),

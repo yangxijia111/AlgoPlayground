@@ -88,7 +88,14 @@ export function validateGraphInput(input: GraphInput): string | null {
     if (seen.has(key)) return `存在重复边 ${e.from}-${e.to}`;
     seen.add(key);
   }
-  if (input.start === null || !ids.has(input.start)) return '必须选择一个有效的起点';
+  // 拓扑排序：边必须全部有向（无向边没有「前置依赖」语义），且不需要起点
+  if (input.algorithm === 'topo-sort') {
+    if (g.edges.some((e) => !e.directed)) return '拓扑排序需要有向图（当前图含无向边）';
+    if (input.start !== null && !ids.has(input.start)) return '起点不存在';
+    if (input.end !== null) return '拓扑排序不使用终点';
+  } else {
+    if (input.start === null || !ids.has(input.start)) return '必须选择一个有效的起点';
+  }
   if (input.end !== null && !ids.has(input.end)) return '终点不存在';
   return null;
 }

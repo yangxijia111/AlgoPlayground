@@ -64,7 +64,7 @@ export type StepSemantic =
   | { type: 'tree-output'; nodeId: number; value: number; order: 'pre' | 'in' | 'post' | 'level' }
   | { type: 'tree-enqueue'; value: number }
   // ---- 图（BFS / DFS / Dijkstra）----
-  | { type: 'visit-node'; nodeId: string; algorithm: 'bfs' | 'dfs' | 'dijkstra' }
+  | { type: 'visit-node'; nodeId: string; algorithm: 'bfs' | 'dfs' | 'dijkstra' | 'topo-sort' }
   | { type: 'frontier-add'; nodeIds: string[]; container: 'queue' | 'stack' | 'set' }
   | {
       type: 'graph-relax';
@@ -77,6 +77,13 @@ export type StepSemantic =
     }
   | { type: 'graph-examine'; from: string; to: string; weight: number; oldDistance: number; candidate: number }
   | { type: 'graph-finalize'; nodeId: string; distance: number }
+  // ---- 图（拓扑排序 Kahn）----
+  | { type: 'graph-degree-dec'; from: string; to: string; before: number; after: number }
+  | { type: 'cycle-detected'; remaining: string[] }
+  // ---- 图（Prim 最小生成树）----
+  | { type: 'mst-examine'; from: string; to: string; weight: number; currentKey: number | null; candidate: number }
+  | { type: 'mst-relax'; from: string; to: string; weight: number; oldKey: number | null; newKey: number }
+  | { type: 'mst-accept'; nodeId: string; via: string; weight: number; totalWeight: number }
   // ---- 递归 ----
   | { type: 'call'; label: string; note?: string }
   | { type: 'return'; label: string; value?: string }

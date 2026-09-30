@@ -307,7 +307,9 @@ function isGraphShaped(v: unknown): v is AlgorithmInput {
   if (typeof v !== 'object' || v === null) return false;
   const o = v as Record<string, unknown>;
   if (o.type !== 'graph') return false;
-  if (o.algorithm !== 'bfs' && o.algorithm !== 'dfs' && o.algorithm !== 'dijkstra') return false;
+  if (o.algorithm !== 'bfs' && o.algorithm !== 'dfs' && o.algorithm !== 'dijkstra' && o.algorithm !== 'topo-sort' && o.algorithm !== 'prim') {
+    return false;
+  }
   // v1 payload 结构：{ type, algorithm, graph: { nodes, edges }, start, end }
   const g = o.graph;
   if (typeof g !== 'object' || g === null) return false;
@@ -506,7 +508,7 @@ function fromCompact(c: unknown): AlgorithmInput | null {
       }
     }
     case 'graph': {
-      if (o.al !== 'bfs' && o.al !== 'dfs' && o.al !== 'dijkstra') return null;
+      if (o.al !== 'bfs' && o.al !== 'dfs' && o.al !== 'dijkstra' && o.al !== 'topo-sort' && o.al !== 'prim') return null;
       if (!Array.isArray(o.n) || o.n.length < 1 || o.n.length > 12) return null;
       if (!Array.isArray(o.e) || o.e.length > 24) return null;
       const nodes: { id: string; x: number; y: number }[] = [];
@@ -538,10 +540,16 @@ function fromCompact(c: unknown): AlgorithmInput | null {
         if (typeof w !== 'number' || !Number.isInteger(w) || w < 1 || w > 99) return null;
         edges.push({ id, from, to, directed: dir === 1, weight: w });
       }
-      if (typeof o.st !== 'string' || !seenIds.has(o.st)) return null;
+      // topo-sort 无起点（Kahn 从所有入度 0 节点开始）：st 允许为空串（编码为 start=null）
+      if (typeof o.st !== 'string') return null;
+      if (o.al === 'topo-sort') {
+        if (o.st !== '' && !seenIds.has(o.st)) return null;
+      } else {
+        if (!seenIds.has(o.st)) return null;
+      }
       if (o.en !== null && typeof o.en !== 'string') return null;
       if (o.en !== null && !seenIds.has(o.en)) return null;
-      return { type: 'graph', algorithm: o.al, graph: { nodes, edges }, start: o.st, end: o.en };
+      return { type: 'graph', algorithm: o.al, graph: { nodes, edges }, start: o.st === '' ? null : o.st, end: o.en };
     }
     case 'recursion': {
       if (o.k !== 'factorial' && o.k !== 'fibonacci' && o.k !== 'hanoi') return null;

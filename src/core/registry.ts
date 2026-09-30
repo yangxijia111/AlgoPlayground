@@ -89,12 +89,13 @@ export interface GraphModel {
   edges: GraphEdge[];
 }
 
-export type GraphAlgorithm = 'bfs' | 'dfs' | 'dijkstra';
+export type GraphAlgorithm = 'bfs' | 'dfs' | 'dijkstra' | 'topo-sort' | 'prim';
 
 export interface GraphInput {
   type: 'graph';
   algorithm: GraphAlgorithm;
   graph: GraphModel;
+  /** 起点必选（topo-sort 除外：Kahn 从所有入度 0 节点开始，start 允许 null 且不参与计算） */
   start: string | null;
   /** 仅 dijkstra 使用；null 表示计算到全部节点 */
   end: string | null;

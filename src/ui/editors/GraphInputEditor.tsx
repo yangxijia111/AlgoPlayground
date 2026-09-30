@@ -223,24 +223,30 @@ export function GraphInputEditor({ value, onCommit }: { value: GraphInput; onCom
       </div>
 
       <div className="editor-row">
-        <label className="field">
-          <span className="field-label">起点（必选）</span>
-          <select
-            value={start ?? ''}
-            onChange={(e) => {
-              const s = e.target.value || null;
-              setStart(s);
-              commit(graph, s, end);
-            }}
-          >
-            <option value="">（未选择）</option>
-            {graph.nodes.map((n) => (
-              <option key={n.id} value={n.id}>
-                {n.id}
-              </option>
-            ))}
-          </select>
-        </label>
+        {value.algorithm === 'topo-sort' ? (
+          <span className="viz-chip" role="note">
+            拓扑排序不需要起点：从所有入度为 0 的节点开始（节点旁数字为当前入度）
+          </span>
+        ) : (
+          <label className="field">
+            <span className="field-label">起点（必选）</span>
+            <select
+              value={start ?? ''}
+              onChange={(e) => {
+                const s = e.target.value || null;
+                setStart(s);
+                commit(graph, s, end);
+              }}
+            >
+              <option value="">（未选择）</option>
+              {graph.nodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.id}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {value.algorithm === 'dijkstra' ? (
           <label className="field">
             <span className="field-label">终点（可选，提前结束）</span>
