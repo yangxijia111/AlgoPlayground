@@ -104,6 +104,12 @@
 - [x] lint / typecheck / test / coverage / build / e2e 与 CI（含 Security、Pages）全绿；core 覆盖率 98.59/90.29/99.69/98.59
 - [x] README / CHANGELOG / ROADMAP / P11_FINAL_REPORT 同步；v1.1.1 tag 创建后不移动
 
+## P12 Content & Learning Depth（✅ 完成，v1.2.0 已发布）
+
+范围：内容扩展与学习深度。1) 新增图算法：拓扑排序（Kahn + 环检测，入度徽标可视化）与 Prim 最小生成树（key 徽标 + 割边选择），复用图编辑器 / GraphView / Share graph 编码。2) 学习系统接入：Beginner / Predict exhaustive switch 补全、Quiz 题库、学习路线、术语表。3) Challenge 7 → 12。4) 修复 P11 Limitation 5（Predict write 出题）。5) 测试：契约自动纳入新条目、随机 DAG 拓扑合法性 / Prim 权重参考属性测试、metamorphic、E2E。
+
+拆解与验收标准见 [P12_ROADMAP.md](P12_ROADMAP.md)。
+
 ## 状态
 
 | Phase | 状态 |
@@ -120,3 +126,4 @@
 | P9 | ✅ 完成（v1.0.1 已发布） |
 | P10 | ✅ 完成（v1.1.0 已发布） |
 | P11 | ✅ 完成（v1.1.1 已发布） |
+| P12 | ✅ 完成（v1.2.0 已发布） |

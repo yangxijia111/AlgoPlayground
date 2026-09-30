@@ -44,12 +44,19 @@ export type StepSemantic =
   | { type: 'tree-output'; nodeId: number; value: number; order: 'pre' | 'in' | 'post' | 'level' }
   | { type: 'tree-enqueue'; value: number }
   // ---- 图 ----
-  | { type: 'visit-node'; nodeId: string; algorithm: 'bfs' | 'dfs' | 'dijkstra' }
+  | { type: 'visit-node'; nodeId: string; algorithm: 'bfs' | 'dfs' | 'dijkstra' | 'topo-sort' }
   | { type: 'frontier-add'; nodeIds: string[]; container: 'queue' | 'stack' | 'set' }
   | { type: 'graph-relax'; from: string; to: string; weight: number; oldDistance: number | null; newDistance: number; predecessor: string }
   | { type: 'graph-examine'; from: string; to: string; weight: number; oldDistance: number; candidate: number }  // 考察后不更新
   | { type: 'graph-finalize'; nodeId: string; distance: number }       // Dijkstra 定型
-  | { type: 'graph-reject'; nodeId: string }                           // 重复入队等
+  // ---- 图（拓扑排序 Kahn，P12）----
+  | { type: 'graph-degree-dec'; from: string; to: string; before: number; after: number }  // 出边处理使邻居入度减一；after=0 表示归零入队（入队事件由帧 frontier 与文案体现）
+  | { type: 'cycle-detected'; remaining: string[] }                     // 剩余节点互相等待：图含环
+  // ---- 图（Prim 最小生成树，P12）----
+  | { type: 'mst-examine'; from: string; to: string; weight: number; currentKey: number | null; candidate: number }  // 割边不优于当前 key
+  | { type: 'mst-relax'; from: string; to: string; weight: number; oldKey: number | null; newKey: number }           // key 更新（只比较单边权重，不累加）
+  | { type: 'mst-accept'; nodeId: string; via: string; weight: number; totalWeight: number }                          // 节点连入树
+  // （历史草案 graph-reject 已并入 frontier-add 的去重逻辑，未实现为独立类型）
   // ---- 递归 ----
   | { type: 'call'; label: string; note?: string }
   | { type: 'return'; label: string; value?: string }

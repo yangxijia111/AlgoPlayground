@@ -207,3 +207,42 @@
 ## [1.1.1] — 2026-09-23
 
 深层正确性与架构强化版本（P11）：不新增算法，专注跨层状态一致性、一等语义层与学习数据可靠性。修复 7 个真实 bug（Stack pop 编辑器分叉、BST 删除表示失真、Beginner 三处教学错误、share variant/step/beginner 丢失、graph 分享上限、linkedList 越界防御、bst 空树分享）；新增 StepSemantic 判别联合（36 类型）并迁移全部 26 算法；Beginner/Predict/Challenge 全面 semantic-first；Share 协议 v2（v1 兼容）；Storage schema v2（revision + 迁移 + PersistenceStatus + 跨标签页域合并 + strict import + 真实日期校验）；引入 fast-check 属性测试 + 跨层契约 + metamorphic 测试 + Semantic Coverage Contract。846 项单测（原 587 全部保留）+ 79 项 E2E（原 66 全部保留）；core 覆盖率 98.59/90.29/99.69/98.59。v1.0.0/v1.0.1/v1.1.0 tag 与 v1 链接、v1 localStorage 数据、v1 导出文件全部保持可用。
+
+## [1.2.0] — 2026-09-30
+
+内容与学习深度扩展版本（P12）：新增拓扑排序（Kahn + 环检测，入度徽标可视化，环图输出部分前缀不崩溃）与 Prim 最小生成树（key 徽标 + 割边选择，明确与 Dijkstra「不做路径累加」的区别）两个图算法，StepSemantic 36 → 41 类型；学习系统全面接入（Beginner 详解 / Predict 出题 / Quiz 6 题 / 学习路线 / 术语表 5 条）；Challenge 7 → 12（新增快排分区、DFS 序、拓扑序、Prim 生长、Dijkstra 定型）；修复 P11 遗留的 Predict write 不出题。874 项单测（原 846 全部保留）+ 87 项 E2E（原 79 全部保留）；core 覆盖率 98.60/90.49/99.71/98.60。v1.1.1 及更早的分享链接、localStorage 数据、导出文件全部保持可用。
+
+### P12-0 — 规划 ✅（开发期记录）
+
+### P12-0 — 规划 ✅
+- 产出 `docs/P12_ROADMAP.md`：新增拓扑排序（Kahn + 环检测）与 Prim 最小生成树两个图算法（复用图编辑器 / GraphView / Share graph 编码），学习系统全面接入，Challenge 7 → 12，修复 P11 Known Limitation 5（Predict write 出题）。
+
+### P12-1 — 拓扑排序（Kahn 算法 + 环检测）✅
+- 新增 `topo-sort` 算法条目：`GraphAlgorithm` 扩展；validate 要求全部边有向、`start` 允许 null（Kahn 从所有入度 0 节点开始，不参与计算）；Share v1/v2 解码白名单同步（v2 `st=''` 编码 start=null，roundtrip 由契约测试自动覆盖）。
+- Generator：入度计算（distance 徽标复用为「当前入度」——输出节点必然归 0、成环节点恒 >0，直观解释环成因）→ 入度 0 按字母序入队（frontier-add）→ 循环{出队输出（visit-node, algorithm:'topo-sort'）→ 每条出边一帧 graph-degree-dec（before/after；归零入队由帧 frontier 体现）}；未全部输出 → 剩余节点 danger + cycle-detected（输出部分拓扑序前缀，不崩溃）。
+- semantic 新增 `graph-degree-dec` / `cycle-detected`；`visit-node.algorithm` 联合扩展 `'topo-sort'`。
+- 图编辑器：topo-sort 时隐藏起点选择器并显示「从所有入度为 0 的节点开始」说明。
+- 单测 8 项：默认 DAG 金标准（A→B→C→D→E + 语义序列完整）、入度徽标初值、degree-dec before/after 与归零入队、部分环（C,D 输出 + A,B danger）、全环（空入队即检测）、单节点、多源平局字母序、确定性 deepEqual。
+
+### P12-2 — Prim 最小生成树 ✅
+- 新增 `prim` 算法条目（start 必选）：distance 徽标复用为「key=连入树的最小边权」、predecessor 显示连入边来源、树边 success 累积、候选集按 key 升序展示；非连通图覆盖可达部分后正常结束（muted 提示）。
+- semantic 新增 `mst-examine`（割边不更新）/ `mst-relax`（key 更新，只比较单边权重不累加——与 Dijkstra 松弛的本质区别在 Beginner 详解中明确）/ `mst-accept`（nodeId/via/weight/totalWeight）。
+- 单测 7 项：默认图金标准（接受序 B,C,E,D、总权重 14）、key 初值、relax/examine 触发条件、非连通、确定性。
+
+### P12-3 — 学习系统接入 ✅
+- Beginner：新增 5 个 semantic 分支 + visit-node topo 分支（exhaustive switch 编译强制补全）；Prim 与 Dijkstra 的 key/dist 区别、入度归零与环成因均给出正确教学解释。
+- Predict：mst-accept（下一个连入树的节点）/ mst-relax（key 更新值）出题；visit-node topo 专属题面；mst-examine/graph-degree-dec/cycle-detected 不出题（回退或跳过）。
+- Quiz：topo-sort 3 题 + prim 3 题（概念/机制/Prim vs Dijkstra 对比）。
+- 学习路线：图章节追加 topo-sort、prim 两课（全部 24 算法恰好覆盖一次，契约测试锁定）。
+- 术语表：新增 DAG、入度/出度、拓扑序、最小生成树、割边 5 个术语。
+- Challenge 7 → 12：新增 quick-partition（快排分区一轮，compare+swap 双动作）、dfs-order、topo-order、prim-tree、dijkstra-finalize；期望序列全部由真实 Generator semantic 提取；质量契约 pick 匹配扩展 mst-accept / graph-finalize。
+
+### P12-4 — Predict write 出题（P11 Limitation 5 修复）✅
+- write 步骤（归并写回 / 插入移位与落位）现出「位置 i 将被写入什么值」题：干扰项 = 旧值、数组内其他值、±1（buildOptions 去重保证互异且非答案；候选不足安全降级不出题）。
+- 质量契约：merge 与 insertion 双场景的 write 题答案 = semantic.value、选项互异、题面含位置下标。
+
+### P12-5 — 测试强化 ✅
+- 属性测试（fast-check ×100 ×3）：随机 DAG（编号有序连边保证无环）→ Kahn 输出是全体节点排列且满足全部边序约束；随机 DAG 加反向边 → cycle-detected 必然出现且输出为真前缀；随机连通图（随机生成树 + 额外边）→ Prim 总权重 = 独立 Kruskal 参考实现、树边数 = V−1、起点不在接受序列。
+- metamorphic 新增 2 项：DAG 全边反向后输出仍合法且镜像（A↔E 首尾互换）；Prim 换起点总权重不变。
+- Semantic Coverage Contract：topo-sort / prim 配置变体输入与关键类型（visit-node/frontier-add/graph-degree-dec；mst-accept/mst-relax）。
+- E2E 新增 8 项：topo 播放终态与单步入度递减、prim 终态（总权重 14 + 4 条 success 树边）与单步 key 更新、topo/prim 分享链接 roundtrip、topo-order 与 prim-tree 挑战通关。全量 87 项通过（79 旧 + 8 新）。

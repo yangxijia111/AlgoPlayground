@@ -56,19 +56,24 @@ function submitAction(m: ChallengeMachine, a: ChallengeAction): ChallengeResult;
 - 不匹配 → mistakes+1，cursor 不动，feedback 教学性提示（引用期望动作的来源帧 description 提炼，如「此时应该先比较下标 0 和 1」「BST 上 7 < 8 应走左子树」）。
 - cursor 走完 → status='completed'，justCompleted=true。
 
-## 3. 首批 7 个挑战
+## 3. 挑战定义（P10 首批 7 个 + P12 扩展 5 个，共 12 个）
 
 | id | 算法 | 玩法 | 动作 |
 | --- | --- | --- | --- |
 | bubble-pass | bubble-sort | 对 [5,2,4,1] 完成一轮冒泡扫描 | compare(i,i+1) / swap(i,i+1) |
 | selection-round | selection-sort | 对 [7,3,5,2] 完成第一轮选择（找最小、换到队首） | compare / swap |
+| quick-partition | quick-sort | 对 [5,3,8,1,9,2] 完成第一轮分区（pivot=末元素） | compare / swap |
 | binary-search | binary-search | 在 [1,3,5,7,9,11] 中找 9：每轮选出 mid | pick(mid 下标对应的值) |
-| stack-ops | stack | 依目标序列（push A,B → pop → peek）选操作 | op |
-| queue-ops | queue | 依目标序列（enqueue A,B → dequeue → front）选操作 | op |
+| stack-ops | stack | 依目标序列（push x,y → pop）选操作 | op |
+| queue-ops | queue | 依目标序列（enqueue p,q → dequeue）选操作 | op |
 | bst-search | bst-operations | 在给定 BST 上搜 6：逐节点选走向 | pick(节点值) |
 | bfs-order | bfs | 给定 6 节点图，按 BFS 序点出访问序列 | pick(节点 id) |
+| dfs-order | dfs | 同一张图按 DFS 序点出访问序列 | pick(节点 id) |
+| topo-order | topo-sort | 课程先修 DAG：按 Kahn 输出序点击（入度 0 才可输出） | pick(节点 id) |
+| prim-tree | prim | 按割边最小选择连入树的顺序点击节点 | pick(节点 id) |
+| dijkstra-finalize | dijkstra | 按「未确定集中距离最小」的定型顺序点击节点 | pick(节点 id) |
 
-范围控制：做好这 7 个、真正可玩；不为覆盖更多算法把每个都做浅。
+范围控制：每个挑战都要「真正可玩」且期望序列完全由真实 Generator 提取（semantic → ChallengeAction），不复制算法实现。
 
 ## 4. UI（/challenges/:id）
 

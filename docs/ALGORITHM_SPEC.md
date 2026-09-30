@@ -64,6 +64,8 @@ GraphModel：nodes（id 'A'…，相对坐标）、edges（directed、weight 1�
 - bfs：标准队列；出队→访问→未访问邻队（邻接序按字母稳定排序）。frontier=队列内容。
 - dfs：显式栈；弹栈→若未访问则访问→逆序压入未访问邻接点。frontier=栈内容（栈顶在末位）。
 - dijkstra：简单 O(V²) 选择版；每轮：从未确定集中取 dist 最小者→确定（sorted 态）→松弛出边（更新 distance/predecessor，被更新节点 special）。frontier=未确定集按 dist 升序。若指定 end：确定 end 后提前结束，并回溯前驱以 success 高亮路径。
+- topo-sort（P12，Kahn）：要求全部边有向（validate 拒绝无向边）；start 允许 null（Kahn 从所有入度 0 节点开始，start 不参与计算，Share 编码 st='' 表示 null）。distance 徽标复用为「当前入度」（初始即真实入度；输出节点必然归 0；成环节点恒 >0）。流程：入度计算帧→入度 0 节点按字母序入队（frontier-add）→循环{出队输出（visit-node, algorithm:'topo-sort'）→每条出边一帧（graph-degree-dec 携带 before/after；归零即入队，由帧 frontier 体现）}。结束时若未全部输出：剩余节点 danger 并发 cycle-detected（含部分拓扑序前缀，不崩溃）。O(V+E)。
+- prim（P12，最小生成树）：start 必选。distance 徽标复用为「key=连入树的最小边权」（predecessor 显示连入边来源）。流程：初始（key[start]=0）→relax 起点出边→循环{pending=未入树节点按 key 升序（null 最后，平局字母序）→选最小者入树（mst-accept 携带 via/weight/totalWeight，树边 success 累积）→relax 新节点出边（每条边一帧：mst-relax 更新 key 或 mst-examine 不更新）}。key 只比较单边权重不累加（与 Dijkstra 的本质区别）。非连通：覆盖可达部分后正常结束（muted 提示）。O(V²)。
 - 不可达：distance 保持 null，显示为 ∞，完成步骤解释"不可达"。
 
 ## 7. 递归（RecursionFrame，callStack 底→顶）
